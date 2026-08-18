@@ -138,10 +138,12 @@ alias zshrc="nvim ~/dotfiles/home/zshrc"
 alias tmuxrc="nvim ~/dotfiles/config/tmux/tmux.conf"
 alias vimrc="nvim ~/dotfiles/config/nvim/init.lua"
 alias dots="cd ~/dotfiles"
-# Arrancar un entorno reproducible en la carpeta actual
-alias nx-node='cp -n ~/dotfiles/templates/node/{flake.nix,.envrc} . && direnv allow'
-alias nx-py='cp -n ~/dotfiles/templates/python/{flake.nix,.envrc} . && direnv allow'
-alias nx-rust='cp -n ~/dotfiles/templates/rust/{flake.nix,.envrc} . && direnv allow' 
+# Arrancar un entorno reproducible en la carpeta actual.
+# Va por script porque dentro de un repo git hace falta `git add -N flake.nix`
+# o Nix no lo ve y direnv no carga nada.
+alias nx-node='~/dotfiles/home/nx-init.sh node'
+alias nx-py='~/dotfiles/home/nx-init.sh python'
+alias nx-rust='~/dotfiles/home/nx-init.sh rust' 
 alias gs="git status -sb"
 alias gd="git diff"
 alias gl="git log --oneline --graph --decorate -20"
