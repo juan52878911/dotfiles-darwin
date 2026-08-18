@@ -1,200 +1,198 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
+#  ~/.zshrc  — gestionado por home-manager desde ~/dotfiles/home/zshrc
+#  Orden importante: instant prompt arriba del todo, syntax-highlighting al final.
+
+# ─── Powerlevel10k instant prompt (lo más arriba posible) ─────────────────────
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# # Initialization code that may require console input (password prompts, [y/n]
-# # confirmations, etc.) must go above this block; everything else may go below.
-# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-# fi
-#
-# export ZSH="$HOME/.oh-my-zsh"
-# export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$HOME/.cargo/bin:$HOME/.volta/bin:$HOME/.bun/bin:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:$HOME/.config:$HOME/.cargo/bin:/usr/local/lib/*:$PATH"
-#
-# if [[ $- == *i* ]]; then
-#     # Commands to run in interactive sessions can go here
-# fi
-#
-# export LS_COLORS="di=38;5;67:ow=48;5;60:ex=38;5;132:ln=38;5;144:*.tar=38;5;180:*.zip=38;5;180:*.jpg=38;5;175:*.png=38;5;175:*.mp3=38;5;175:*.wav=38;5;175:*.txt=38;5;223:*.sh=38;5;132"
-# if [[ "$(uname)" == "Darwin" ]]; then
-#   alias ls='ls --color=auto'
-# else
-#   alias ls='gls --color=auto'
-# fi
-#
-# if [[ "$(uname)" == "Darwin" ]]; then
-#     # macOS
-#     BREW_BIN="/opt/homebrew/bin"
-# else
-#     # Linux
-#     BREW_BIN="/home/linuxbrew/.linuxbrew/bin"
-# fi
-#
-# # Usar la variable BREW_BIN donde se necesite
-# eval "$($BREW_BIN/brew shellenv)"
-#
-# source $(dirname $BREW_BIN)/share/zsh-autocomplete/zsh-autocomplete.plugin.zsh
-# source $(dirname $BREW_BIN)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-# source $(dirname $BREW_BIN)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-# source $(dirname $BREW_BIN)/share/powerlevel10k/powerlevel10k.zsh-theme
-#
-# export PROJECT_PATHS="/home/alanbuscaglia/work"
-# export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
-# export FZF_DEFAULT_T_COMMAND="$FZF_DEFAULT_COMMAND"
-# export FZF_ALT_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exlude .git"
-#
-# WM_VAR="/$TMUX"
-# # change with ZELLIJ
-# WM_CMD="tmux"
-# # change with zellij
-#
-# function start_if_needed() {
-#     if [[ $- == *i* ]] && [[ -z "${WM_VAR#/}" ]] && [[ -t 1 ]]; then
-#         exec $WM_CMD
-#     fi
-# }
-#
-# # alias
-# alias fzfbat='fzf --preview="bat --theme=gruvbox-dark --color=always {}"'
-# alias fzfnvim='nvim $(fzf --preview="bat --theme=gruvbox-dark --color=always {}")'
-#
-# #plugins
-# plugins=(
-#   command-not-found
-# )
-#
-# source $ZSH/oh-my-zsh.sh
-#
-# export CARAPACE_BRIDGES='zsh,fish,bash,inshellisense'
-# zstyle ':completion:*' format $'\e[2;37mCompleting %d\e[m'
-# source <(carapace _carapace)
-#
-# eval "$(fzf --zsh)"
-# eval "$(zoxide init zsh)"
-# eval "$(atuin init zsh)"
-#
-# # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-#
-# start_if_needed
-#
-# # opencode
-# export PATH=/Users/juanbedoya/.opencode/bin:$PATH
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+BREW_PREFIX="/opt/homebrew"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# ─── PATH ─────────────────────────────────────────────────────────────────────
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
+export PATH="$HOME/.opencode/bin:$PATH"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
+[[ -d "$BREW_PREFIX/opt/llvm@21/bin" ]] && export PATH="$BREW_PREFIX/opt/llvm@21/bin:$PATH"
+export PATH="/Volumes/ExternAscci/Github/bun/build/debug:$PATH"
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
-# Java 21 para Neovim LSP (antes de SDKMAN para evitar conflictos)
-export JAVA_HOME="$HOME/.sdkman/candidates/java/21.0.2-graalce"
-export PATH="$JAVA_HOME/bin:$PATH"
-
-# opencode
-export PATH=/Users/juanbedoya/.opencode/bin:$PATH
-
-# Node Version Manager 
+# ─── Node / nvm (carga diferida) ──────────────────────────────────────────────
+# Cargar nvm.sh al arrancar costaba ~200 ms (70% del inicio, medido con zprof).
 export NVM_DIR="$HOME/.nvm"
-  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+if [[ -r "$NVM_DIR/alias/default" ]]; then
+  _nvm_def="$(<"$NVM_DIR/alias/default")"
+  for _nvm_dir in "$NVM_DIR/versions/node/v${_nvm_def#v}"*(N/); do
+    export PATH="${_nvm_dir}bin:$PATH"; break
+  done
+  unset _nvm_def _nvm_dir
+fi
+nvm() {
+  unset -f nvm
+  [[ -s "$BREW_PREFIX/opt/nvm/nvm.sh" ]] && source "$BREW_PREFIX/opt/nvm/nvm.sh"
+  nvm "$@"
+}
 
-# Go bin
-export PATH="$HOME/go/bin/:$PATH"
-
-# Pyenv
+# ─── Pyenv ────────────────────────────────────────────────────────────────────
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
-# List files aliases
+# ─── Historial ────────────────────────────────────────────────────────────────
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY INC_APPEND_HISTORY SHARE_HISTORY
+setopt HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
+setopt HIST_REDUCE_BLANKS HIST_VERIFY
+
+setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS INTERACTIVE_COMMENTS NO_BEEP
+
+# ─── Autocompletado ───────────────────────────────────────────────────────────
+autoload -Uz compinit
+_zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump"
+if [[ -n "$_zcompdump"(#qN.mh+24) ]]; then compinit -d "$_zcompdump"; else compinit -C -d "$_zcompdump"; fi
+unset _zcompdump
+
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format $'\e[38;5;110m %d\e[0m'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zcompcache"
+
+if command -v carapace >/dev/null 2>&1; then
+  export CARAPACE_BRIDGES='zsh,fish,bash'
+  source <(carapace _carapace zsh)
+fi
+
+# ─── Sugerencias en gris ──────────────────────────────────────────────────────
+if [[ -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#6c7086'
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+fi
+
+# ─── fzf ──────────────────────────────────────────────────────────────────────
+if command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
+  export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+  export FZF_DEFAULT_OPTS=" \
+    --height 45% --layout=reverse --border=rounded --info=inline \
+    --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+    --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+    --color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+    --color=border:#585b70 --prompt='  ' --pointer='▶' --marker='✓'"
+  export FZF_CTRL_T_OPTS="--preview 'bat --style=numbers --color=always --line-range=:200 {}'"
+  export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always {}'"
+fi
+
+# ─── zoxide y atuin ───────────────────────────────────────────────────────────
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+# atuin después de fzf para que gane Ctrl+R; ↑ sigue siendo el historial normal
+command -v atuin >/dev/null 2>&1 && eval "$(atuin init zsh --disable-up-arrow)"
+
+# ─── Atajos ───────────────────────────────────────────────────────────────────
+bindkey -e
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+bindkey '^H' backward-kill-word
+bindkey '^[[3~' delete-char
+bindkey '^U' backward-kill-line
+bindkey -M menuselect 'h' vi-backward-char
+bindkey -M menuselect 'j' vi-down-line-or-history
+bindkey -M menuselect 'k' vi-up-line-or-history
+bindkey -M menuselect 'l' vi-forward-char
+
+_fzf_edit() { local f; f=$(fzf --preview 'bat --color=always {}') && [[ -n "$f" ]] && nvim "$f"; }
+zle -N _fzf_edit
+bindkey '^F' _fzf_edit
+
+# ─── Aliases ──────────────────────────────────────────────────────────────────
 alias ll="ls -l"
 alias la="ls -a"
+if command -v eza >/dev/null 2>&1; then
+  alias l="eza --icons --group-directories-first"
+  alias lt="eza --tree --level=2 --icons --group-directories-first"
+  alias lla="eza -la --icons --group-directories-first --git"
+fi
+command -v bat >/dev/null 2>&1 && alias cat="bat --paging=never" && alias catp="command cat"
+alias reload="exec zsh"
+alias zshrc="nvim ~/dotfiles/home/zshrc"
+alias tmuxrc="nvim ~/dotfiles/config/tmux/tmux.conf"
+alias vimrc="nvim ~/dotfiles/config/nvim/init.lua"
+alias dots="cd ~/dotfiles"
+alias gs="git status -sb"
+alias gd="git diff"
+alias gl="git log --oneline --graph --decorate -20"
+alias ports="lsof -nP -iTCP -sTCP:LISTEN"
 
-# bun completions
-[ -s "/Users/juanbedoya/.bun/_bun" ] && source "/Users/juanbedoya/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Rust via rustup (must come before /opt/homebrew/bin so the proxy wins)
-export PATH="$HOME/.cargo/bin:$PATH"
-
-# LLVM 21 (Bun build requires exact version 21.1.8)
-export PATH="$(brew --prefix llvm@21)/bin:$PATH"
-
-# Bun debug build output (so `bun-debug --version` works from anywhere)
-export PATH="/Volumes/ExternAscci/Github/bun/build/debug:$PATH"
-
-# === Claude Code: sesion fijada para el proyecto bun ===
-# Sesion "bun-lockfile-schema" (docs + tipos de bun.lock, PR oven-sh/bun#34204).
-# En esta ruta exacta, `claude` sin argumentos reanuda esta sesion con su nombre.
-# Para iniciar una sesion NUEVA aqui: usa `command claude`.
+# ─── Claude Code ──────────────────────────────────────────────────────────────
 export CLAUDE_BUN_DIR="/Volumes/ExternAscci/Github/bun"
 export CLAUDE_BUN_SESSION="e1ab2f77-e6da-4e5d-bc8a-2b78cdf4dbe1"
-claude() {
-  local sess="$HOME/.claude/projects/-Volumes-ExternAscci-Github-bun/${CLAUDE_BUN_SESSION}.jsonl"
-  if [[ $# -eq 0 && "$PWD" == "$CLAUDE_BUN_DIR" && -f "$sess" ]]; then
-    command claude --resume "$CLAUDE_BUN_SESSION" --name "bun-lockfile-schema"
-  else
-    command claude "$@"
-  fi
-}
-# Reanudar la sesion "bun-lockfile-schema" desde cualquier ruta:
 alias claude-bun='command claude --resume "$CLAUDE_BUN_SESSION" --name "bun-lockfile-schema"'
 
-
-source ~/powerlevel10k/powerlevel10k.zsh-theme
-
 # >>> claude-auto-retry >>>
-# Drop any pre-existing `claude` alias (Claude Code's own installer adds one)
-# before defining the wrapper function. Without this, the shell expands the
-# alias while parsing `claude() {`, producing "syntax error near unexpected
-# token '('" when the rc file is sourced.
+# Fusiona DOS cosas que antes se pisaban: el fijado de sesión de bun y el
+# envoltorio de claude-auto-retry. Había dos definiciones de claude() y la
+# segunda anulaba a la primera, dejando muerto el auto-resume.
 unalias claude 2>/dev/null || true
 claude() {
-  # Degrade to plain claude if already inside a wrapped session, or if the launcher
-  # is gone (package removed via `npm uninstall -g` without `claude-auto-retry
-  # uninstall` first) — an orphaned wrapper must never break the claude command.
-  if [ "${CLAUDE_AUTO_RETRY_ACTIVE}" = "1" ] || [ ! -e "/Users/juanbedoya/.nvm/versions/node/v20.19.5/lib/node_modules/claude-auto-retry/src/launcher.js" ]; then
-    command claude "$@"
-    return $?
+  local launcher="$HOME/.nvm/versions/node/v20.19.5/lib/node_modules/claude-auto-retry/src/launcher.js"
+  local sess="$HOME/.claude/projects/-Volumes-ExternAscci-Github-bun/${CLAUDE_BUN_SESSION}.jsonl"
+  local -a args; args=("$@")
+  if [[ $# -eq 0 && "$PWD" == "$CLAUDE_BUN_DIR" && -f "$sess" ]]; then
+    args=(--resume "$CLAUDE_BUN_SESSION" --name "bun-lockfile-schema")
+  fi
+  if [[ "$CLAUDE_AUTO_RETRY_ACTIVE" == "1" || ! -e "$launcher" ]]; then
+    command claude "${args[@]}"; return $?
   fi
   export CLAUDE_AUTO_RETRY_ACTIVE=1
   local _car_exit
-  if [ -n "${ZSH_VERSION:-}" ]; then
-    # zsh: localtraps restores the user's INT/TERM traps automatically on function
-    # return. Capture/restore is NOT portable here — `trap -p` is a bashism (zsh
-    # treats it as setting a handler), and $(trap) runs in a subshell where zsh
-    # lists nothing — so the bash-style path silently wiped the user's traps.
-    setopt localoptions localtraps
-    trap 'unset CLAUDE_AUTO_RETRY_ACTIVE' INT TERM
-    node "/Users/juanbedoya/.nvm/versions/node/v20.19.5/lib/node_modules/claude-auto-retry/src/launcher.js" "$@"
-    _car_exit=$?
-  else
-    # bash: function traps are global, so capture and restore around ours.
-    local _car_old_int_trap _car_old_term_trap
-    _car_old_int_trap=$(trap -p INT 2>/dev/null)
-    _car_old_term_trap=$(trap -p TERM 2>/dev/null)
-    trap 'unset CLAUDE_AUTO_RETRY_ACTIVE' INT TERM
-    node "/Users/juanbedoya/.nvm/versions/node/v20.19.5/lib/node_modules/claude-auto-retry/src/launcher.js" "$@"
-    _car_exit=$?
-    # Restore previous traps instead of clobbering them
-    eval "${_car_old_int_trap:-trap - INT}"
-    eval "${_car_old_term_trap:-trap - TERM}"
-  fi
+  setopt localoptions localtraps
+  trap 'unset CLAUDE_AUTO_RETRY_ACTIVE' INT TERM
+  node "$launcher" "${args[@]}"
+  _car_exit=$?
   unset CLAUDE_AUTO_RETRY_ACTIVE
   return $_car_exit
 }
 # <<< claude-auto-retry <<<
 
+# ─── Prompt ───────────────────────────────────────────────────────────────────
+source ~/powerlevel10k/powerlevel10k.zsh-theme
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ ! -f ~/.p10k.catppuccin.zsh ]] || source ~/.p10k.catppuccin.zsh
+
+# ─── SDKMAN ───────────────────────────────────────────────────────────────────
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# Java 21 para jdtls. DEBE ir DESPUÉS de SDKMAN: su init apunta JAVA_HOME a
+# candidates/java/current, que hoy es Java 8, y con eso el LSP no arranca.
+export JAVA_HOME="$HOME/.sdkman/candidates/java/21.0.2-graalce"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+[[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
+
+# ─── Resaltado de sintaxis (SIEMPRE lo último) ────────────────────────────────
+if [[ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  typeset -gA ZSH_HIGHLIGHT_STYLES
+  ZSH_HIGHLIGHT_STYLES[command]='fg=#a6e3a1'
+  ZSH_HIGHLIGHT_STYLES[builtin]='fg=#a6e3a1'
+  ZSH_HIGHLIGHT_STYLES[function]='fg=#a6e3a1'
+  ZSH_HIGHLIGHT_STYLES[alias]='fg=#94e2d5'
+  ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=#f38ba8'
+  ZSH_HIGHLIGHT_STYLES[path]='fg=#89b4fa,underline'
+  ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#f9e2af'
+  ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#f9e2af'
+  ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'
+fi
