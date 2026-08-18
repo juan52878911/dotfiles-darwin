@@ -34,7 +34,16 @@
     mutagen
   ];
 
-  programs.zsh.enable = true;
+  # nix-darwin NO gestiona los archivos de shell del sistema.
+  #
+  # Con `nix.enable = false` (Determinate lleva Nix), nix-darwin reescribiría
+  # /etc/zshrc y /etc/bashrc SIN la línea que carga el daemon de Nix — que hoy
+  # está justo ahí. Resultado: `nix` dejaría de existir en cada shell nueva.
+  # Además /etc/bashrc ya tenía contenido propio y la activación abortaba.
+  # Tu configuración de zsh vive entera en ~/.zshrc, que gestiona home-manager,
+  # así que no se pierde nada dejando /etc como está.
+  programs.zsh.enable = false;
+  programs.bash.enable = false;
 
   # Necesario para que `nix-darwin` sepa desde qué versión migra
   system.stateVersion = 5;
