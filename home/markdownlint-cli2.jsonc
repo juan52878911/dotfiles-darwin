@@ -1,0 +1,10 @@
+// Config global de markdownlint-cli2 (el linter que usa LazyVim para markdown).
+// MD013 avisa de líneas de más de 80 caracteres: en prosa es ruido constante y
+// ensuciaba el README con avisos en medio del texto.
+{
+  "config": {
+    "MD013": false,
+    "MD033": false,
+    "MD041": false
+  }
+}

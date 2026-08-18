@@ -1,0 +1,13 @@
+# Diccionarios del corrector: 24 MB, se regeneran solos
+config/nvim/spell/
+
+# Estado local de Neovim
+config/nvim/.claude/
+config/nvim/.netrwhist
+
+# Nada de claves aquí. Los secretos van fuera del repo.
+*.pem
+*.key
+id_*
+!*.pub
+.env
