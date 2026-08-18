@@ -30,6 +30,8 @@
     fd
     ripgrep
     figlet
+    direnv
+    nix-direnv
     autossh
     mutagen
   ];

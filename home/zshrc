@@ -98,6 +98,14 @@ command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 # atuin después de fzf para que gane Ctrl+R; ↑ sigue siendo el historial normal
 command -v atuin >/dev/null 2>&1 && eval "$(atuin init zsh --disable-up-arrow)"
 
+# ─── direnv: entornos por proyecto ────────────────────────────────────────────
+# Con un .envrc que diga `use flake`, al entrar en la carpeta se cargan las
+# versiones que declare su flake.nix, y al salir se descargan. Es lo que sustituye
+# a nvm/pyenv/sdkman POR PROYECTO, sin tocar las versiones globales.
+if command -v direnv >/dev/null 2>&1; then
+  emulate zsh -c "$(direnv hook zsh)"
+fi
+
 # ─── Atajos ───────────────────────────────────────────────────────────────────
 bindkey -e
 bindkey '^[[A' history-search-backward
@@ -130,6 +138,10 @@ alias zshrc="nvim ~/dotfiles/home/zshrc"
 alias tmuxrc="nvim ~/dotfiles/config/tmux/tmux.conf"
 alias vimrc="nvim ~/dotfiles/config/nvim/init.lua"
 alias dots="cd ~/dotfiles"
+# Arrancar un entorno reproducible en la carpeta actual
+alias nx-node='cp -n ~/dotfiles/templates/node/{flake.nix,.envrc} . && direnv allow'
+alias nx-py='cp -n ~/dotfiles/templates/python/{flake.nix,.envrc} . && direnv allow'
+alias nx-rust='cp -n ~/dotfiles/templates/rust/{flake.nix,.envrc} . && direnv allow' 
 alias gs="git status -sb"
 alias gd="git diff"
 alias gl="git log --oneline --graph --decorate -20"
