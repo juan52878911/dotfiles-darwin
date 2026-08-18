@@ -8,6 +8,13 @@
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
 
+  # Este Mac usa Determinate Nix, que trae su propio daemon para gestionar la
+  # instalación de Nix. nix-darwin intenta gestionarla también y aborta la
+  # activación por el conflicto. Cediéndole el control a Determinate se resuelve.
+  # Contrapartida: las opciones `nix.*` (ajustes del daemon, builder de Linux)
+  # dejan de estar disponibles desde aquí; se configuran en Determinate.
+  nix.enable = false;
+
   # El usuario que gestiona home-manager
   users.users.${usuario}.home = "/Users/${usuario}";
 
