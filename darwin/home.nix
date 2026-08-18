@@ -23,6 +23,7 @@ in
   };
 
   xdg.configFile = {
+    "direnv/direnvrc".source = enlace "home/direnvrc";
     "nvim".source = enlace "config/nvim";
     "kitty/kitty.conf".source = enlace "config/kitty/kitty.conf";
     "tmux/scripts".source = enlace "config/tmux/scripts";

@@ -1,0 +1,15 @@
+# Carga nix-direnv, que cachea los entornos de Nix: sin él, cada `cd` a una
+# carpeta con .envrc reevalúa el flake entero; con él, la segunda entrada es
+# instantánea.
+#
+# Se prueban varias rutas porque cambia según de qué perfil venga el paquete
+# (nix-profile del usuario, perfil del sistema de nix-darwin, o el default).
+for _d in \
+  "$HOME/.nix-profile/share/nix-direnv/direnvrc" \
+  "/etc/profiles/per-user/$USER/share/nix-direnv/direnvrc" \
+  "/run/current-system/sw/share/nix-direnv/direnvrc" \
+  "/nix/var/nix/profiles/default/share/nix-direnv/direnvrc"
+do
+  if [ -f "$_d" ]; then source "$_d"; break; fi
+done
+unset _d
