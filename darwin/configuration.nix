@@ -1,0 +1,35 @@
+# Configuración de sistema (nix-darwin).
+#
+# Deliberadamente MÍNIMA: este Mac tiene Homebrew, SDKMAN, nvm, pyenv, rustup y
+# bun gestionando sus propias herramientas, y todo eso funciona. Migrarlos a Nix
+# es un proyecto aparte con riesgo real, así que aquí solo se declaran las
+# herramientas de terminal que ya usamos y ningún ajuste destructivo del sistema.
+{ pkgs, usuario, ... }:
+{
+  nixpkgs.hostPlatform = "aarch64-darwin";
+
+  # El usuario que gestiona home-manager
+  users.users.${usuario}.home = "/Users/${usuario}";
+
+  # Herramientas de terminal (las mismas que hoy vienen de Homebrew).
+  # Ojo: NO se quitan de Homebrew automáticamente; conviven hasta que decidas.
+  environment.systemPackages = with pkgs; [
+    fzf
+    zoxide
+    atuin
+    carapace
+    bat
+    eza
+    fd
+    ripgrep
+    figlet
+    autossh
+    mutagen
+  ];
+
+  programs.zsh.enable = true;
+
+  # Necesario para que `nix-darwin` sepa desde qué versión migra
+  system.stateVersion = 5;
+  system.primaryUser = usuario;
+}
