@@ -28,6 +28,9 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
+            # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
+            home-manager.backupFileExtension = "antes-de-nix";
             home-manager.extraSpecialArgs = { inherit usuario; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
