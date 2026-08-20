@@ -45,5 +45,6 @@ python3 "$D/claude-bg.py" --cwd "$PROYECTO" --lista --pane "$PANE_ORIGEN" | fzf 
         tmux select-window -t \"\${destino%.*}\" 2>/dev/null
         tmux select-pane  -t \"\$destino\"      2>/dev/null
       else
+        tmux display-message -d 2500 \" esa sesión corre en Claude Desktop, no en tmux — abro su detalle\"
         $VER
       fi)"

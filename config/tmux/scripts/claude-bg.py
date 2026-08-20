@@ -456,7 +456,9 @@ def lista(raiz_proyecto, pane_actual):
             nombre = (d.get("name") or str(d.get("pid")))[:28].ljust(28)
             est = d.get("status") or ("bg" if d.get("kind") == "bg" else "")
             col = VERDE if est in ("running", "busy") else GRIS
-            donde = destino.split(":")[0][:10] if destino else "app"
+            # "desktop" deja claro que esa sesión NO vive en tmux y por tanto
+            # no hay pane al que saltar; "app" se leía como un estado más.
+            donde = destino.split(":")[0][:10] if destino else "desktop"
             filas.append(f"{tr}\t{destino}\t {marca} {TEXTO}{nombre}{RESET} "
                          f"{col}{est[:6].ljust(6)}{RESET} {GRIS}{donde}{RESET}")
 
