@@ -4,7 +4,7 @@
 # Va en un script y no en el .tmux.conf porque encadenar comandos con
 # continuaciones de línea dentro de un bloque `{ }` de tmux falla en silencio.
 
-ANCHO=${1:-38}
+ANCHO=${1:-52}   # el panel interactivo necesita algo más de sitio
 id=$(tmux show -gv @bg_panel_id 2>/dev/null)
 
 # Si hay panel registrado y sigue vivo, cerrar
@@ -21,8 +21,11 @@ proyecto=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null)
 
 # --watch redibuja en el sitio; el `while :; do clear; ...; done` de antes
 # provocaba un parpadeo muy molesto en un pane fijo.
+# El pane de origen se pasa para poder marcar con ▶ dónde estás ahora
+origen=$(tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null)
+
 nuevo=$(tmux split-window -h -l "$ANCHO" -P -F '#{pane_id}' \
-  "COLUMNS=$ANCHO exec python3 $HOME/.config/tmux/scripts/claude-bg.py --cwd '$proyecto' --watch 5" 2>/dev/null)
+  "exec $HOME/.config/tmux/scripts/claude-panel.sh '$proyecto' '$origen'" 2>/dev/null)
 
 if [[ -n "$nuevo" ]]; then
   tmux set -g @bg_panel_id "$nuevo"

@@ -381,15 +381,92 @@ def render(raiz_proyecto, ancho):
     return [_recortar(l, ancho) for l in L]
 
 
+def _mapa_padres():
+    import subprocess
+    out = subprocess.run(["ps", "-Ao", "pid=,ppid="], capture_output=True, text=True).stdout
+    m = {}
+    for l in out.splitlines():
+        c = l.split()
+        if len(c) == 2:
+            m[int(c[0])] = int(c[1])
+    return m
+
+
+def _mapa_panes():
+    import subprocess
+    out = subprocess.run(
+        ["tmux", "list-panes", "-a", "-F", "#{pane_pid}\t#{session_name}:#{window_index}.#{pane_index}"],
+        capture_output=True, text=True).stdout
+    m = {}
+    for l in out.splitlines():
+        c = l.split("\t")
+        if len(c) == 2:
+            m[int(c[0])] = c[1]
+    return m
+
+
+def pane_de(pid, padres, panes):
+    """Sube por el árbol de procesos hasta dar con un pane de tmux."""
+    cur, saltos = int(pid), 0
+    while cur > 1 and saltos < 12:
+        if cur in panes:
+            return panes[cur]
+        cur = padres.get(cur, 0)
+        saltos += 1
+    return ""
+
+
+def lista(raiz_proyecto, pane_actual):
+    """Filas para fzf:  ruta_transcripcion \t destino_tmux \t etiqueta"""
+    padres, panes = _mapa_padres(), _mapa_panes()
+    filas = []
+
+    for f in glob.glob(os.path.expanduser("~/.claude/sessions/*.json")):
+        try:
+            with open(f, encoding="utf-8") as fh:
+                d = json.load(fh)
+        except Exception:
+            continue
+        pid = d.get("pid")
+        try:
+            os.kill(int(pid), 0)
+        except Exception:
+            continue
+        cwd = d.get("cwd") or ""
+        if raiz_proyecto and not (cwd == raiz_proyecto or cwd.startswith(raiz_proyecto + "/")):
+            continue
+        destino = pane_de(pid, padres, panes)
+        # La transcripción de la sesión vive en projects/<slug>/<sessionId>.jsonl
+        tr = os.path.expanduser(f"~/.claude/projects/{slug(cwd)}/{d.get('sessionId')}.jsonl")
+        aqui = "▶ " if destino and destino == pane_actual else "  "
+        tipo = "bg " if d.get("kind") == "bg" else "ses"
+        est = d.get("status") or d.get("kind") or ""
+        nombre = (d.get("name") or str(pid))[:30]
+        donde = destino or "(app)"
+        filas.append(f"{tr}\t{destino}\t{aqui}{tipo} {nombre}  ·{est}· {donde}")
+
+    for a in agentes(raiz_proyecto):
+        marca = "en curso" if a["activo"] else "inactivo"
+        filas.append(f"{a['ruta']}\t\t   ag  {a['titulo'][:30]}  ·{marca}· {dur(a['transcurrido'])}")
+    return filas
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cwd", default=None)
     ap.add_argument("--watch", type=float, default=0)
     ap.add_argument("--pick", action="store_true")
     ap.add_argument("--todos", action="store_true")
+    ap.add_argument("--lista", action="store_true")
+    ap.add_argument("--pane", default="")
     args = ap.parse_args()
 
     raiz = None if args.todos else os.path.realpath(args.cwd or os.getcwd())
+
+    if args.lista:
+        for f in lista(raiz, args.pane):
+            print(f)
+        return
 
     if args.pick:
         for a in agentes(raiz):
