@@ -38,13 +38,4 @@ python3 "$D/claude-bg.py" --cwd "$PROYECTO" --lista --pane "$PANE_ORIGEN" | fzf 
   --bind='/:enable-search+change-prompt(  )' \
   --bind='j:down,k:up' \
   --bind="space:execute($VER)" \
-  --bind="enter:execute(
-      destino={2};
-      if [ -n \"\$destino\" ]; then
-        tmux switch-client -t \"\${destino%%:*}\" 2>/dev/null
-        tmux select-window -t \"\${destino%.*}\" 2>/dev/null
-        tmux select-pane  -t \"\$destino\"      2>/dev/null
-      else
-        tmux display-message -d 2500 \" esa sesión corre en Claude Desktop, no en tmux — abro su detalle\"
-        $VER
-      fi)"
+  --bind="enter:execute($D/claude-ir.sh {2}; [ -z {2} ] && $VER)"
