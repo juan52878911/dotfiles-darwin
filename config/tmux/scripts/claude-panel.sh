@@ -1,34 +1,42 @@
 #!/bin/bash
 # Panel de sesiones y agentes de Claude Code, para un pane lateral de tmux.
-#
-#   ⏎      sesión con pane -> salta a él;  agente -> abre su detalle
-#   ␣      abre el detalle en un flotante encima
-#   ^r     recarga
-#   esc    cierra el flotante (y también el panel)
-#
-# El flotante usa fzf como visor en vez de `less` porque fzf sale con esc de
-# serie; en less, esc es prefijo de secuencias y no se puede atar a "salir".
+# Los atajos no se anuncian: se ven pulsando h.
 
 D="$HOME/.config/tmux/scripts"
 PROYECTO="${1:-$PWD}"
 PANE_ORIGEN="${2:-}"
 
-# {1} vacío = fila de cabecera: no hay nada que abrir
+COLORES='fg:#cdd6f4,fg+:#cdd6f4,bg:-1,bg+:#313244,hl:#f38ba8,hl+:#f38ba8,pointer:#cba6f7,prompt:#cba6f7,header:#6c7086,border:#585b70'
+
+# Visor del detalle.
+# OJO: nada de `--seguir` aquí. fzf con --tac espera el fin de la entrada para
+# poder invertirla, y un tail infinito no termina nunca: la ventana salía vacía
+# y no cerraba. Se muestra una foto, y ^r la refresca.
 VER='[ -n {1} ] && tmux display-popup -w 84% -h 80% -b rounded \
   -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " {3} " \
-  -E "python3 '"$D"'/claude-detalle.py {1} --seguir | fzf --ansi --no-sort --tac \
-      --layout=reverse-list --info=hidden --no-scrollbar --prompt=\"  \" \
-      --color=\"fg:#cdd6f4,bg:-1,hl:#f38ba8,prompt:#cba6f7,pointer:#cba6f7\" \
-      --header=\"esc para cerrar\" --header-first"'
+  -E "python3 '"$D"'/claude-detalle.py {1} | fzf --ansi --no-sort --disabled \
+      --layout=reverse-list --info=hidden --no-scrollbar --pointer=\" \" \
+      --color=\"'"$COLORES"'\" \
+      --bind=\"ctrl-r:reload(python3 '"$D"'/claude-detalle.py {1})\""'
+
+AYUDA='tmux display-popup -w 40 -h 12 -b rounded \
+  -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " atajos " -E "printf \"
+  \033[38;2;203;166;247m⏎\033[0m   ir a la sesión / ver detalle
+  \033[38;2;203;166;247m␣\033[0m   detalle en flotante
+  \033[38;2;203;166;247m^r\033[0m  recargar
+  \033[38;2;203;166;247mesc\033[0m salir
+  \033[38;2;203;166;247m/\033[0m   buscar
+\n\"; read -rsn1"'
 
 python3 "$D/claude-bg.py" --cwd "$PROYECTO" --lista --pane "$PANE_ORIGEN" | fzf \
-  --ansi --delimiter='\t' --with-nth=3 \
+  --ansi --delimiter='\t' --with-nth=3 --disabled \
   --layout=reverse --info=hidden --border=none --no-scrollbar \
-  --prompt='  ' --pointer='▸' \
-  --color='fg:#cdd6f4,fg+:#cdd6f4,bg:-1,bg+:#313244,hl:#f38ba8,hl+:#f38ba8,pointer:#cba6f7,prompt:#cba6f7,header:#6c7086' \
-  --header="$(basename "$PROYECTO")   ⏎ ir · ␣ detalle · ^r recargar" \
-  --header-first \
+  --prompt='' --pointer='▸' --color="$COLORES" \
+  --header="$(basename "$PROYECTO")" --header-first \
   --bind="ctrl-r:reload(python3 $D/claude-bg.py --cwd '$PROYECTO' --lista --pane '$PANE_ORIGEN')" \
+  --bind="h:execute($AYUDA)" \
+  --bind='/:enable-search+change-prompt(  )' \
+  --bind='j:down,k:up' \
   --bind="space:execute($VER)" \
   --bind="enter:execute(
       destino={2};
