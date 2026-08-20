@@ -417,50 +417,68 @@ def pane_de(pid, padres, panes):
 
 
 def lista(raiz_proyecto, pane_actual):
-    """Filas para fzf:  ruta_transcripcion \t destino_tmux \t etiqueta_coloreada
+    """Filas para fzf:  ruta \t destino_tmux \t etiqueta
 
-    Minimalista a propósito: un marcador, un tipo, el nombre y el estado. El color
-    hace el trabajo de separar categorías, no los adornos.
+    Agrupado como en la app: sesiones arriba, luego lo que está corriendo y al
+    final lo terminado. Las cabeceras van como filas con destino vacío y ruta
+    vacía, para que el panel sepa que no se puede saltar ni abrir nada en ellas.
     """
     padres, panes = _mapa_padres(), _mapa_panes()
     filas = []
 
+    def cabecera(txt, extra=""):
+        cola = f" {GRIS}{extra}{RESET}" if extra else ""
+        filas.append(f"\t\t{MALVA}{txt}{RESET}{cola}")
+
+    # ── Sesiones ──────────────────────────────────────────────────────────────
+    sesiones = []
     for f in glob.glob(os.path.expanduser("~/.claude/sessions/*.json")):
         try:
             with open(f, encoding="utf-8") as fh:
                 d = json.load(fh)
         except Exception:
             continue
-        pid = d.get("pid")
         try:
-            os.kill(int(pid), 0)
+            os.kill(int(d.get("pid", 0)), 0)
         except Exception:
             continue
         cwd = d.get("cwd") or ""
         if raiz_proyecto and not (cwd == raiz_proyecto or cwd.startswith(raiz_proyecto + "/")):
             continue
+        sesiones.append((d, pane_de(d.get("pid"), padres, panes), cwd))
 
-        destino = pane_de(pid, padres, panes)
-        tr = os.path.expanduser(f"~/.claude/projects/{slug(cwd)}/{d.get('sessionId')}.jsonl")
-        es_bg = d.get("kind") == "bg"
-        aqui = destino and destino == pane_actual
+    if sesiones:
+        cabecera("Sesiones")
+        for d, destino, cwd in sorted(sesiones, key=lambda x: (not x[1], x[0].get("kind") != "bg")):
+            tr = os.path.expanduser(f"~/.claude/projects/{slug(cwd)}/{d.get('sessionId')}.jsonl")
+            aqui = destino and destino == pane_actual
+            marca = f"{MALVA}▶{RESET}" if aqui else " "
+            nombre = (d.get("name") or str(d.get("pid")))[:28].ljust(28)
+            est = d.get("status") or ("bg" if d.get("kind") == "bg" else "")
+            col = VERDE if est in ("running", "busy") else GRIS
+            donde = destino.split(":")[0][:10] if destino else "app"
+            filas.append(f"{tr}\t{destino}\t {marca} {TEXTO}{nombre}{RESET} "
+                         f"{col}{est[:6].ljust(6)}{RESET} {GRIS}{donde}{RESET}")
 
-        marca = f"{MALVA}▶{RESET}" if aqui else " "
-        tipo = f"{AZUL}bg {RESET}" if es_bg else f"{GRIS}ses{RESET}"
-        nombre = (d.get("name") or str(pid))[:26].ljust(26)
-        est = d.get("status") or ""
-        col_est = VERDE if est in ("running", "busy") else GRIS
-        donde = destino.split(":")[0][:12] if destino else "app"
+    ags = agentes(raiz_proyecto)
+    activos = [a for a in ags if a["activo"]]
+    quietos = [a for a in ags if not a["activo"]]
 
-        filas.append(f"{tr}\t{destino}\t{marca} {tipo} {TEXTO}{nombre}{RESET} "
-                     f"{col_est}{est[:7].ljust(7)}{RESET} {GRIS}{donde}{RESET}")
+    def fila_agente(a, col):
+        nombre = a["titulo"][:28].ljust(28)
+        filas.append(f"{a['ruta']}\t\t   {col}●{RESET} {TEXTO}{nombre}{RESET} "
+                     f"{GRIS}{dur(a['transcurrido']).ljust(6)}{RESET}")
 
-    for a in agentes(raiz_proyecto):
-        col = VERDE if a["activo"] else GRIS
-        nombre = a["titulo"][:26].ljust(26)
-        est = "activo" if a["activo"] else "quieto"
-        filas.append(f"{a['ruta']}\t\t  {MALVA}ag {RESET} {TEXTO}{nombre}{RESET} "
-                     f"{col}{est.ljust(7)}{RESET} {GRIS}{dur(a['transcurrido'])}{RESET}")
+    if activos:
+        cabecera("En ejecución")
+        for a in activos[:8]:
+            fila_agente(a, VERDE)
+
+    if quietos:
+        cabecera("Finalizadas", str(len(quietos)))
+        for a in quietos[:8]:
+            fila_agente(a, GRIS)
+
     return filas
 
 
