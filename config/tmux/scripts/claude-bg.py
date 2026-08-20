@@ -194,6 +194,46 @@ def _titulo(cruda):
     return txt
 
 
+def sesiones_bg(raiz_proyecto):
+    """Sesiones en segundo plano, de ~/.claude/sessions/<pid>.json con kind=="bg".
+
+    Esta es la fuente BUENA: trae el nombre real de la tarea, el `status` en vivo
+    y el jobId. Se actualiza por eventos (statusUpdatedAt), no por sondeo.
+    Se descartó hablar por el socket de `messagingSocketPath` porque su protocolo
+    es de mensajería entre sesiones (`notify_when_idle` / `peer_idle_notice`), no
+    de telemetría: no da tokens ni usos de herramienta, y suscribirse tocaría
+    sesiones que están trabajando.
+    """
+    fuera = []
+    for f in glob.glob(os.path.expanduser("~/.claude/sessions/*.json")):
+        try:
+            with open(f, encoding="utf-8") as fh:
+                d = json.load(fh)
+        except Exception:
+            continue
+        if d.get("kind") != "bg":
+            continue
+        cwd = d.get("cwd") or ""
+        if raiz_proyecto and not (cwd == raiz_proyecto or cwd.startswith(raiz_proyecto + "/")):
+            continue
+        pid = d.get("pid")
+        try:
+            os.kill(int(pid), 0)
+            vivo = True
+        except Exception:
+            vivo = False
+        if not vivo:
+            continue          # proceso muerto: el fichero quedó huérfano
+        fuera.append({
+            "id": str(d.get("jobId") or pid),
+            "titulo": d.get("name") or str(pid),
+            "estado": d.get("status") or "?",
+            "transcurrido": time.time() - (d.get("startedAt", 0) / 1000),
+            "ts": (d.get("statusUpdatedAt") or d.get("updatedAt") or 0) / 1000,
+        })
+    return sorted(fuera, key=lambda x: x["ts"], reverse=True)
+
+
 def agentes(raiz_proyecto):
     """Subagentes, de ~/.claude/projects/<proy>/<ses>/subagents/agent-*.jsonl
 
@@ -302,6 +342,18 @@ def render(raiz_proyecto, ancho):
     etiqueta = os.path.basename(raiz_proyecto) if raiz_proyecto else "todos los proyectos"
     L.append(f"{AZUL} {etiqueta[:ancho - 4]}{RESET}")
     L.append("")
+
+    bgs = sesiones_bg(raiz_proyecto)
+    if bgs:
+        L.append(f"{MALVA}  Sesiones en background{RESET}")
+        for b in bgs[:4]:
+            c = VERDE if b["estado"] in ("running", "busy") else AMARILLO
+            trozos = envolver(b["titulo"], ancho, 4)
+            L.append(f"  {c}●{RESET} {TEXTO}{trozos[0]}{RESET}")
+            for extra in trozos[1:2]:
+                L.append(f"    {TEXTO}{extra}{RESET}")
+            L.append(f"    {c}{b['estado']}{RESET}{GRIS} · {dur(b['transcurrido'])}{RESET}")
+        L.append("")
 
     L.append(f"{MALVA}  Agentes{RESET}")
     if not ags:
