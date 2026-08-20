@@ -35,6 +35,17 @@ def slug(ruta):
     return ruta.replace("/", "-").replace("_", "-").replace(".", "-")
 
 
+def envolver(texto, ancho, sangria):
+    """Parte el texto en líneas que quepan, sin cortar palabras a media.
+
+    El panel es estrecho (38 columnas): sin esto los títulos se salían del pane
+    y tmux los cortaba en seco a mitad de palabra.
+    """
+    import textwrap
+    disponible = max(8, ancho - sangria - 2)
+    return textwrap.wrap(texto, width=disponible) or [""]
+
+
 def dur(seg):
     seg = max(0, int(seg))
     if seg < 60:
@@ -179,8 +190,8 @@ def _titulo(cruda):
     for linea in txt.split("\n"):
         linea = linea.strip()
         if len(linea) > 12:
-            return linea[:34]
-    return txt[:34]
+            return linea
+    return txt
 
 
 def agentes(raiz_proyecto):
@@ -222,7 +233,7 @@ def agentes(raiz_proyecto):
             "id": os.path.basename(ruta)[6:14],
             "titulo": (_descripcion_padre(os.sep.join(ruta.split(os.sep)[:-2]) + ".jsonl",
                                           os.path.basename(ruta)[6:-6])
-                       or _titulo(_primera_linea(ruta)))[:34],
+                       or _titulo(_primera_linea(ruta))),
             "tokens": tokens,
             "activo": (ahora - st.st_mtime) < 300,
             "transcurrido": transcurrido,
@@ -259,6 +270,29 @@ def color_estado(e):
     return {"running": VERDE, "blocked": ROJO, "queued": AMARILLO}.get(e, GRIS)
 
 
+def _visible(linea):
+    """Longitud sin contar los códigos de color."""
+    import re
+    return len(re.sub(r"\033\[[0-9;]*m", "", linea))
+
+
+def _recortar(linea, ancho):
+    if _visible(linea) <= ancho:
+        return linea
+    import re
+    fuera, usado = [], 0
+    for trozo in re.split(r"(\033\[[0-9;]*m)", linea):
+        if trozo.startswith("\033"):
+            fuera.append(trozo)
+            continue
+        queda = ancho - usado - 1
+        if queda <= 0:
+            break
+        fuera.append(trozo[:queda])
+        usado += len(trozo[:queda])
+    return "".join(fuera) + "…" + RESET
+
+
 def render(raiz_proyecto, ancho):
     ags = agentes(raiz_proyecto)
     # La salida de un subagente también cae en tasks/: sin esto sale dos veces
@@ -275,7 +309,10 @@ def render(raiz_proyecto, ancho):
     for a in ags[:5]:
         c = VERDE if a["activo"] else GRIS
         estado = "en curso" if a["activo"] else "inactivo"
-        L.append(f"  {c}●{RESET} {TEXTO}{a['titulo']}{RESET}")
+        trozos = envolver(a["titulo"], ancho, 4)
+        L.append(f"  {c}●{RESET} {TEXTO}{trozos[0]}{RESET}")
+        for extra in trozos[1:3]:            # como mucho tres líneas de título
+            L.append(f"    {TEXTO}{extra}{RESET}")
         tk = f"{a['tokens']/1000:.0f}k" if a["tokens"] >= 1000 else str(a["tokens"])
         L.append(f"    {c}{estado}{RESET}{GRIS} · {dur(a['transcurrido'])} · {tk} tok{RESET}")
 
@@ -289,7 +326,7 @@ def render(raiz_proyecto, ancho):
         kb = t["bytes"] / 1024
         tam = f"{kb:.0f}K" if kb >= 1 else f"{t['bytes']}b"
         L.append(f"  {c}●{RESET} {TEXTO}{t['id'][:16]}{RESET} {GRIS}{tam} · {edad(t['ts'])}{RESET}")
-    return L
+    return [_recortar(l, ancho) for l in L]
 
 
 def main():
