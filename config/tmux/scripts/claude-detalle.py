@@ -111,12 +111,82 @@ def ultimas(ruta, n=40, cola=400000):
     return [l for l in trozo.split(b"\n") if l.strip()][-n:], fin
 
 
+def visor(ruta):
+    """Visor tipo log: pinta el final y se queda siguiendo el fichero.
+
+    Se hace a mano en vez de con `less -R +F` o `fzf` por dos motivos:
+      · `less` no puede atar esc a "salir" (allí esc es prefijo de secuencias).
+      · `fzf --tac` espera el EOF de la entrada, y un tail infinito no lo da:
+        la ventana salía vacía y no cerraba.
+    Al imprimir sin más, el terminal desplaza solo, así que SIEMPRE se ve lo
+    último — que es de lo que se trata.
+    """
+    import termios
+    import threading
+    import tty
+
+    print(cabecera(ruta))
+    print()
+    lineas, pos = ultimas(ruta, n=200)
+    for l in lineas:
+        r = resumir(l)
+        if r:
+            print(r)
+    sys.stdout.flush()
+
+    if not sys.stdin.isatty():
+        return
+
+    # Lectura de teclas en un hilo con read BLOQUEANTE.
+    # Con select() sobre sys.stdin la tecla no llegaba a verse (el envoltorio de
+    # texto de Python se interpone); un read bloqueante en su propio hilo no tiene
+    # esa sutileza.
+    salir = threading.Event()
+
+    def escuchar():
+        while not salir.is_set():
+            try:
+                k = os.read(sys.stdin.fileno(), 1)
+            except OSError:
+                break
+            if not k or k in (b"\x1b", b"q", b"Q"):
+                salir.set()
+                break
+
+    viejo = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        hilo = threading.Thread(target=escuchar, daemon=True)
+        hilo.start()
+        fh = open(ruta, "rb")
+        fh.seek(pos)
+        while not salir.is_set():
+            linea = fh.readline()
+            if not linea:
+                salir.wait(0.4)
+                continue
+            r = resumir(linea)
+            if r:
+                print(r)
+                sys.stdout.flush()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, viejo)
+
+
 def main():
     if len(sys.argv) < 2:
         print("uso: claude-detalle.py <ruta.jsonl> [--seguir]")
         return
     ruta = sys.argv[1]
     seguir = "--seguir" in sys.argv
+    if "--visor" in sys.argv:
+        if not os.path.exists(ruta):
+            print(f"{GRIS}  sin transcripción todavía{RESET}")
+            return
+        visor(ruta)
+        return
     if not os.path.exists(ruta):
         print(f"{GRIS}  sin transcripción todavía{RESET}")
         return

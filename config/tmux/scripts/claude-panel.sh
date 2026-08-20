@@ -12,12 +12,12 @@ COLORES='fg:#cdd6f4,fg+:#cdd6f4,bg:-1,bg+:#313244,hl:#f38ba8,hl+:#f38ba8,pointer
 # OJO: nada de `--seguir` aquí. fzf con --tac espera el fin de la entrada para
 # poder invertirla, y un tail infinito no termina nunca: la ventana salía vacía
 # y no cerraba. Se muestra una foto, y ^r la refresca.
-VER='[ -n {1} ] && tmux display-popup -w 84% -h 80% -b rounded \
+# Visor del detalle: script propio, no fzf ni less.
+# Al imprimir en un terminal normal el desplazamiento es natural, así que la vista
+# queda SIEMPRE en lo último y ocupa todo el alto. Sale con esc o q.
+VER='[ -n {1} ] && tmux display-popup -w 88% -h 92% -b rounded \
   -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " {3} " \
-  -E "python3 '"$D"'/claude-detalle.py {1} | fzf --ansi --no-sort --disabled \
-      --layout=reverse-list --info=hidden --no-scrollbar --pointer=\" \" \
-      --color=\"'"$COLORES"'\" \
-      --bind=\"ctrl-r:reload(python3 '"$D"'/claude-detalle.py {1})\""'
+  -E "python3 '"$D"'/claude-detalle.py {1} --visor"'
 
 AYUDA='tmux display-popup -w 40 -h 12 -b rounded \
   -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " atajos " -E "printf \"
