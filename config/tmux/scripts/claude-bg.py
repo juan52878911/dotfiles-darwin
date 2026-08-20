@@ -417,7 +417,11 @@ def pane_de(pid, padres, panes):
 
 
 def lista(raiz_proyecto, pane_actual):
-    """Filas para fzf:  ruta_transcripcion \t destino_tmux \t etiqueta"""
+    """Filas para fzf:  ruta_transcripcion \t destino_tmux \t etiqueta_coloreada
+
+    Minimalista a propósito: un marcador, un tipo, el nombre y el estado. El color
+    hace el trabajo de separar categorías, no los adornos.
+    """
     padres, panes = _mapa_padres(), _mapa_panes()
     filas = []
 
@@ -435,19 +439,28 @@ def lista(raiz_proyecto, pane_actual):
         cwd = d.get("cwd") or ""
         if raiz_proyecto and not (cwd == raiz_proyecto or cwd.startswith(raiz_proyecto + "/")):
             continue
+
         destino = pane_de(pid, padres, panes)
-        # La transcripción de la sesión vive en projects/<slug>/<sessionId>.jsonl
         tr = os.path.expanduser(f"~/.claude/projects/{slug(cwd)}/{d.get('sessionId')}.jsonl")
-        aqui = "▶ " if destino and destino == pane_actual else "  "
-        tipo = "bg " if d.get("kind") == "bg" else "ses"
-        est = d.get("status") or d.get("kind") or ""
-        nombre = (d.get("name") or str(pid))[:30]
-        donde = destino or "(app)"
-        filas.append(f"{tr}\t{destino}\t{aqui}{tipo} {nombre}  ·{est}· {donde}")
+        es_bg = d.get("kind") == "bg"
+        aqui = destino and destino == pane_actual
+
+        marca = f"{MALVA}▶{RESET}" if aqui else " "
+        tipo = f"{AZUL}bg {RESET}" if es_bg else f"{GRIS}ses{RESET}"
+        nombre = (d.get("name") or str(pid))[:26].ljust(26)
+        est = d.get("status") or ""
+        col_est = VERDE if est in ("running", "busy") else GRIS
+        donde = destino.split(":")[0][:12] if destino else "app"
+
+        filas.append(f"{tr}\t{destino}\t{marca} {tipo} {TEXTO}{nombre}{RESET} "
+                     f"{col_est}{est[:7].ljust(7)}{RESET} {GRIS}{donde}{RESET}")
 
     for a in agentes(raiz_proyecto):
-        marca = "en curso" if a["activo"] else "inactivo"
-        filas.append(f"{a['ruta']}\t\t   ag  {a['titulo'][:30]}  ·{marca}· {dur(a['transcurrido'])}")
+        col = VERDE if a["activo"] else GRIS
+        nombre = a["titulo"][:26].ljust(26)
+        est = "activo" if a["activo"] else "quieto"
+        filas.append(f"{a['ruta']}\t\t  {MALVA}ag {RESET} {TEXTO}{nombre}{RESET} "
+                     f"{col}{est.ljust(7)}{RESET} {GRIS}{dur(a['transcurrido'])}{RESET}")
     return filas
 
 

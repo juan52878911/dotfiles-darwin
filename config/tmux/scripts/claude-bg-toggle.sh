@@ -4,7 +4,7 @@
 # Va en un script y no en el .tmux.conf porque encadenar comandos con
 # continuaciones de línea dentro de un bloque `{ }` de tmux falla en silencio.
 
-ANCHO=${1:-52}   # el panel interactivo necesita algo más de sitio
+ANCHO=${1:-46}   # solo la lista: no hace falta más
 id=$(tmux show -gv @bg_panel_id 2>/dev/null)
 
 # Si hay panel registrado y sigue vivo, cerrar

@@ -28,6 +28,19 @@ def hora(iso):
         return "--:--:--"
 
 
+# Bloques que son fontanería interna, no lo que el agente está haciendo.
+RUIDO = (
+    "<task-notification>", "<tool-use-id>", "<output-file>", "<task-id>",
+    "<local-command-caveat>", "<system-reminder>", "<command-name>",
+    "Async agent launched successfully", "This tool result is internal metadata",
+    "Caveat: The messages below were generated",
+)
+
+
+def _es_ruido(txt):
+    return any(m in txt for m in RUIDO)
+
+
 def resumir(cruda):
     """Convierte un registro del JSONL en una línea legible, o None si no aporta."""
     try:
@@ -40,7 +53,7 @@ def resumir(cruda):
 
     if isinstance(contenido, str):
         txt = " ".join(contenido.split())
-        if not txt:
+        if not txt or _es_ruido(txt):
             return None
         rol = m.get("role", d.get("type", ""))
         col = AZUL if rol == "user" else TEXTO
@@ -56,8 +69,8 @@ def resumir(cruda):
         tipo = b.get("type")
         if tipo == "text":
             txt = " ".join((b.get("text") or "").split())
-            if txt:
-                partes.append(f"{TEXTO}{txt[:150]}{RESET}")
+            if txt and not _es_ruido(txt):
+                partes.append(f"{TEXTO}{txt[:220]}{RESET}")
         elif tipo == "tool_use":
             nombre = b.get("name", "?")
             ent = b.get("input") or {}
@@ -69,6 +82,8 @@ def resumir(cruda):
             if isinstance(cont, list):
                 cont = " ".join(str(x.get("text", "")) for x in cont if isinstance(x, dict))
             cont = " ".join(str(cont or "").split())
+            if _es_ruido(cont):
+                continue
             estado = ROJO_ERR if b.get("is_error") else VERDE
             partes.append(f"{estado}   ↳{RESET} {GRIS}{cont[:110]}{RESET}")
     if not partes:

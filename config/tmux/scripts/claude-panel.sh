@@ -1,43 +1,38 @@
 #!/bin/bash
-# Panel interactivo de sesiones y agentes de Claude Code.
+# Panel de sesiones y agentes de Claude Code, para un pane lateral de tmux.
 #
-# Se ejecuta dentro de un pane de tmux. Muestra las sesiones del proyecto actual,
-# marca con ▶ las que corren en este mismo pane, y previsualiza en tiempo real lo
-# que está haciendo cada una.
+#   enter   sesión con pane -> salta a él;  agente -> abre su detalle
+#   space   abre el detalle en un flotante, sin moverse de sitio
+#   ctrl-r  recarga la lista
 #
-#   enter    saltar al pane de esa sesión
-#   ctrl-r   recargar la lista
-#   ctrl-o   abrir el detalle a pantalla completa
-#   ratón    seleccionar (tmux tiene mouse on)
+# Sin vista previa fija a propósito: la lista sola se lee mejor, y el detalle
+# aparece en un popup encima cuando lo pides.
 
 D="$HOME/.config/tmux/scripts"
 PROYECTO="${1:-$PWD}"
-# Pane desde el que se abrió el panel: sirve para marcar "estás aquí"
 PANE_ORIGEN="${2:-}"
 
-listar() {
-  python3 "$D/claude-bg.py" --cwd "$PROYECTO" --lista --pane "$PANE_ORIGEN"
-}
-export -f listar 2>/dev/null
+# Popup de detalle, con los mismos colores que el resto de la interfaz
+DETALLE="tmux display-popup -w 82% -h 78% -b rounded \
+  -s 'fg=#cdd6f4,bg=#181825' -S 'fg=#585b70' \
+  -T ' detalle ' -E \"python3 $D/claude-detalle.py {1} --seguir | less -R +F\""
 
-# --preview-window follow hace que la vista siga escribiendo sola: el script de
-# detalle se queda leyendo el final del JSONL, así que es tiempo real de verdad.
-listar | fzf \
+python3 "$D/claude-bg.py" --cwd "$PROYECTO" --lista --pane "$PANE_ORIGEN" | fzf \
   --ansi --delimiter='\t' --with-nth=3 \
-  --layout=reverse --info=inline --border=none \
-  --prompt='  ' --pointer='▸' --marker='✓' \
-  --header="$(basename "$PROYECTO")  ·  enter: ir  ctrl-r: recargar  ctrl-o: detalle" \
+  --layout=reverse --info=hidden --border=none --no-scrollbar \
+  --prompt='  ' --pointer="▸" --color='fg:#cdd6f4,fg+:#cdd6f4,bg:-1,bg+:#313244,hl:#f38ba8,hl+:#f38ba8,pointer:#cba6f7,prompt:#cba6f7,header:#6c7086,border:#585b70' \
+  --header="$(basename "$PROYECTO")   ⏎ ir · ␣ detalle · ^r recargar" \
   --header-first \
-  --preview="python3 $D/claude-detalle.py {1} --seguir" \
-  --preview-window='down,70%,follow,wrap,border-top' \
   --bind="ctrl-r:reload(python3 $D/claude-bg.py --cwd '$PROYECTO' --lista --pane '$PANE_ORIGEN')" \
-  --bind="ctrl-o:execute(python3 $D/claude-detalle.py {1} --seguir)" \
-  --bind='enter:become(
+  --bind="space:execute($DETALLE)" \
+  --bind='enter:execute(
       destino={2};
       if [ -n "$destino" ]; then
         tmux switch-client -t "${destino%%:*}" 2>/dev/null
         tmux select-window -t "${destino%.*}" 2>/dev/null
-        tmux select-pane -t "$destino" 2>/dev/null
+        tmux select-pane  -t "$destino"      2>/dev/null
       else
-        tmux display-message "esa sesión no vive en tmux (corre en la app)"
+        tmux display-popup -w 82% -h 78% -b rounded \
+          -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " detalle " \
+          -E "python3 '"$D"'/claude-detalle.py {1} --seguir | less -R +F"
       fi)'
