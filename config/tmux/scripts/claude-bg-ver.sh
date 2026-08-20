@@ -4,12 +4,17 @@
 
 D="$HOME/.config/tmux/scripts"
 
-sel=$("$D/claude-bg.sh" --pick 2>/dev/null | fzf \
+# Mismo proyecto que el pane desde el que se abre; --todos para ver la máquina entera
+proyecto=$(tmux display-message -p '#{pane_current_path}' 2>/dev/null || echo "$PWD")
+ambito=(--cwd "$proyecto")
+[[ "$1" == "--todos" ]] && ambito=(--todos)
+
+sel=$(python3 "$D/claude-bg.py" "${ambito[@]}" --pick 2>/dev/null | fzf \
   --delimiter='\t' --with-nth=2 \
   --prompt='  proceso  ' --pointer='▶' --height=100% \
   --preview="tail -n 400 {1} 2>/dev/null || echo 'sin salida todavía'" \
   --preview-window=right:65%:wrap \
-  --header='enter: abrir en pager · ctrl-c: salir') || exit 0
+  --header="proyecto: $(basename \"$proyecto\") · enter: abrir · ctrl-c: salir") || exit 0
 
 ruta=$(printf '%s' "$sel" | cut -f1)
 [[ -z "$ruta" || ! -e "$ruta" ]] && exit 0
