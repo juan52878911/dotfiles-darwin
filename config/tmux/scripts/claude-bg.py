@@ -35,6 +35,15 @@ def slug(ruta):
     return ruta.replace("/", "-").replace("_", "-").replace(".", "-")
 
 
+def dur(seg):
+    seg = max(0, int(seg))
+    if seg < 60:
+        return f"{seg}s"
+    if seg < 3600:
+        return f"{seg // 60}m"
+    return f"{seg // 3600}h {(seg % 3600) // 60:02d}m"
+
+
 def edad(ts):
     d = time.time() - ts
     if d < 60:
@@ -60,27 +69,165 @@ def raices_tmp():
     return fuera
 
 
-def agentes(raiz_proyecto):
-    fuera = []
-    for est in glob.glob(os.path.expanduser("~/.claude/jobs/*/state.json")):
+def _primera_linea(ruta):
+    with open(ruta, "rb") as fh:
+        return fh.readline()
+
+
+def _ultimas_lineas(ruta, cuantas=25, cola=200000):
+    """Lee solo el final del fichero: estos JSONL pasan del medio mega."""
+    with open(ruta, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        fin = fh.tell()
+        fh.seek(max(0, fin - cola))
+        trozo = fh.read()
+    lineas = [l for l in trozo.split(b"\n") if l.strip()]
+    return lineas[-cuantas:]
+
+
+def _tokens(lineas):
+    """El último registro no siempre trae `usage`; se busca hacia atrás.
+
+    Se suma cache_read + output porque es lo que refleja el tamaño real del
+    contexto que ha manejado el agente, que es lo que muestra la app.
+    """
+    for cruda in reversed(lineas):
         try:
-            with open(est, encoding="utf-8") as fh:
-                d = json.load(fh)
+            d = json.loads(cruda)
         except Exception:
             continue
-        cwd = d.get("cwd") or ""
-        # Un agente cuenta si su cwd está dentro del proyecto (o es el proyecto)
-        if raiz_proyecto and not (cwd == raiz_proyecto or cwd.startswith(raiz_proyecto + "/")):
+        u = ((d.get("message") or {}).get("usage") or {})
+        if u:
+            return u.get("cache_read_input_tokens", 0) + u.get("output_tokens", 0)
+    return 0
+
+
+_CACHE_DESC = {}   # jsonl_padre -> (mtime, {agentId: descripcion})
+
+
+def _mapa_descripciones(jsonl_padre):
+    """Escanea el JSONL padre UNA vez y cachea por mtime.
+
+    Sin esto se recorría el fichero entero por cada agente: con 5 agentes eran
+    5 pasadas completas y el panel pasaba de 0.1 s a 0.4 s por refresco.
+    """
+    try:
+        mt = os.path.getmtime(jsonl_padre)
+    except OSError:
+        return {}
+    guardado = _CACHE_DESC.get(jsonl_padre)
+    if guardado and guardado[0] == mt:
+        return guardado[1]
+
+    por_uso, por_agente, pendientes = {}, {}, []
+    try:
+        with open(jsonl_padre, encoding="utf-8", errors="ignore") as fh:
+            for linea in fh:
+                if '"Agent"' not in linea and '"agentId"' not in linea:
+                    continue
+                try:
+                    d = json.loads(linea)
+                except Exception:
+                    continue
+                c = (d.get("message") or {}).get("content")
+                if not isinstance(c, list):
+                    continue
+                for b in c:
+                    if not isinstance(b, dict):
+                        continue
+                    if b.get("type") == "tool_use" and b.get("name") == "Agent":
+                        por_uso[b.get("id")] = (b.get("input") or {}).get("description", "")
+                    elif b.get("type") == "tool_result":
+                        pendientes.append((b.get("tool_use_id"), linea))
+    except OSError:
+        return {}
+
+    for id_uso, linea in pendientes:
+        desc = por_uso.get(id_uso)
+        if not desc:
             continue
+        # El agentId aparece en el texto del resultado
+        import re
+        for m in re.finditer(r'"agentId":"([a-z0-9]+)"', linea):
+            por_agente[m.group(1)] = desc
+        for m in re.finditer(r'\b(a[0-9a-f]{16})\b', linea):
+            por_agente.setdefault(m.group(1), desc)
+
+    _CACHE_DESC[jsonl_padre] = (mt, por_agente)
+    return por_agente
+
+
+def _descripcion_padre(jsonl_padre, agent_id):
+    """La descripción real de la tarea vive en la sesión PADRE.
+
+    Enlace: el subagente tiene `agentId`; en el padre, el registro que lo menciona
+    lleva un bloque tool_result con `tool_use_id`, y el tool_use de Agent con ese
+    mismo id trae el campo `description` — que es justo lo que enseña la app.
+    """
+    return _mapa_descripciones(jsonl_padre).get(agent_id, "")
+
+
+def _titulo(cruda):
+    try:
+        d = json.loads(cruda)
+    except Exception:
+        return ""
+    m = d.get("message") or {}
+    c = m.get("content")
+    txt = c if isinstance(c, str) else (c[0].get("text", "") if isinstance(c, list) and c else "")
+    # La primera frase con sentido sirve de título
+    for linea in txt.split("\n"):
+        linea = linea.strip()
+        if len(linea) > 12:
+            return linea[:34]
+    return txt[:34]
+
+
+def agentes(raiz_proyecto):
+    """Subagentes, de ~/.claude/projects/<proy>/<ses>/subagents/agent-*.jsonl
+
+    No hay campo de estado: se considera EN CURSO si el fichero se tocó hace poco.
+    Claude Desktop muestra lo mismo con más metadatos porque habla con el proceso;
+    desde disco esto es lo más fiel que se puede inferir.
+    """
+    patron = os.path.expanduser("~/.claude/projects/*/*/subagents/agent-*.jsonl")
+    fuera = []
+    ahora = time.time()
+    for ruta in glob.glob(patron):
+        proyecto = ruta.split(os.sep)[-4]
+        if raiz_proyecto and not proyecto.startswith(slug(raiz_proyecto)):
+            continue
+        try:
+            st = os.stat(ruta)
+        except OSError:
+            continue
+        # Ventana de 24 h: un agente largo puede pasar horas sin escribir (esperando
+        # una herramienta lenta) y la app lo sigue dando por "En ejecución".
+        if ahora - st.st_mtime > 24 * 3600:
+            continue
+        try:
+            prim = json.loads(_primera_linea(ruta))
+            colas = _ultimas_lineas(ruta)
+        except Exception:
+            continue
+        tokens = _tokens(colas)
+        inicio = prim.get("timestamp", "")
+        try:
+            import calendar
+            t0 = calendar.timegm(time.strptime(inicio[:19], "%Y-%m-%dT%H:%M:%S"))
+            transcurrido = st.st_mtime - t0
+        except Exception:
+            transcurrido = 0
         fuera.append({
-            "id": os.path.basename(os.path.dirname(est)),
-            "estado": d.get("state") or "?",
-            "detalle": (d.get("detail") or "").split("\n")[0][:30],
-            "intent": (d.get("intent") or "")[:30],
-            "cwd": os.path.basename(cwd),
-            "vuelo": (d.get("inFlight") or {}).get("tasks", 0),
-            "ts": os.path.getmtime(est),
-            "ruta": est,
+            "id": os.path.basename(ruta)[6:14],
+            "titulo": (_descripcion_padre(os.sep.join(ruta.split(os.sep)[:-2]) + ".jsonl",
+                                          os.path.basename(ruta)[6:-6])
+                       or _titulo(_primera_linea(ruta)))[:34],
+            "tokens": tokens,
+            "activo": (ahora - st.st_mtime) < 300,
+            "transcurrido": transcurrido,
+            "ts": st.st_mtime,
+            "ruta": ruta,
         })
     return sorted(fuera, key=lambda x: x["ts"], reverse=True)
 
@@ -113,7 +260,10 @@ def color_estado(e):
 
 
 def render(raiz_proyecto, ancho):
-    ags, trs = agentes(raiz_proyecto), tareas(raiz_proyecto)
+    ags = agentes(raiz_proyecto)
+    # La salida de un subagente también cae en tasks/: sin esto sale dos veces
+    ids_agente = {a["id"] for a in ags}
+    trs = [t for t in tareas(raiz_proyecto) if not any(t["id"].startswith(i) for i in ids_agente)]
     L = []
     etiqueta = os.path.basename(raiz_proyecto) if raiz_proyecto else "todos los proyectos"
     L.append(f"{AZUL} {etiqueta[:ancho - 4]}{RESET}")
@@ -122,14 +272,12 @@ def render(raiz_proyecto, ancho):
     L.append(f"{MALVA}  Agentes{RESET}")
     if not ags:
         L.append(f"{GRIS}    ninguno aquí{RESET}")
-    for a in ags[:6]:
-        c = color_estado(a["estado"])
-        L.append(f"  {c}●{RESET} {TEXTO}{a['id']}{RESET}")
-        vuelo = f" · {a['vuelo']} en vuelo" if a["vuelo"] else ""
-        L.append(f"    {c}{a['estado']}{RESET}{GRIS}{vuelo} · {edad(a['ts'])}{RESET}")
-        etiq = a["detalle"] or a["intent"]
-        if etiq:
-            L.append(f"    {GRIS}{etiq}{RESET}")
+    for a in ags[:5]:
+        c = VERDE if a["activo"] else GRIS
+        estado = "en curso" if a["activo"] else "inactivo"
+        L.append(f"  {c}●{RESET} {TEXTO}{a['titulo']}{RESET}")
+        tk = f"{a['tokens']/1000:.0f}k" if a["tokens"] >= 1000 else str(a["tokens"])
+        L.append(f"    {c}{estado}{RESET}{GRIS} · {dur(a['transcurrido'])} · {tk} tok{RESET}")
 
     L.append("")
     L.append(f"{MALVA}  Procesos bash{RESET}")
