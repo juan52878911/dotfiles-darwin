@@ -12,6 +12,12 @@
 
 command -v nowplaying-cli >/dev/null 2>&1 || exit 0
 
+# Sin reproductor abierto no hay nada que mostrar: salir antes de llamar a
+# nowplaying-cli. Cuando no suena nada tarda 2,7 s en devolver null (espera un
+# timeout de MediaRemote) y con status-interval 5 eso era un bash + nowplaying-cli
+# + python vivos más de la mitad del tiempo. pgrep cuesta ~10 ms.
+pgrep -xq 'TIDAL|Spotify|Music' || exit 0
+
 MAX_LEN=28           # caracteres visibles antes de recortar
 SEP_COLOR="#585b70"  # gris del separador, el mismo de hora y fecha
 TEXT_COLOR="#6c7086"  # gris tenue: se lee al buscarla, no empuja la hora
