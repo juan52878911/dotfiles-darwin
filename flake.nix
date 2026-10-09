@@ -11,9 +11,15 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # ws: organizaciones y espacios de trabajo (github.com/juan52878911/tmux-ws).
+    # Actualizar: nix flake update tmux-ws
+    tmux-ws = {
+      url = "github:juan52878911/tmux-ws";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, ... }:
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
@@ -31,7 +37,7 @@
             # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
             # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
             home-manager.backupFileExtension = "antes-de-nix";
-            home-manager.extraSpecialArgs = { inherit usuario; };
+            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
         ];

@@ -1,0 +1,16 @@
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	name = JuanPBedoya
+	email = juanbedoya843@gmail.com
+[lfs "customtransfer.xet"]
+	path = git-xet
+	args = transfer
+	concurrent = true
+# ws: correo, clave SSH y cuenta de GitHub por organización (includeIf por
+# carpeta). Lo genera `ws` desde ~/.config/ws/ws.toml; si no existe, git lo ignora.
+[include]
+	path = ~/.local/state/ws/gitconfig

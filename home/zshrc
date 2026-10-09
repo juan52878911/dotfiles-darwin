@@ -210,3 +210,30 @@ if [[ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
   ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#f9e2af'
   ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'
 fi
+VV=/Volumes/ExternAscci/Github/VibeVoiceNix
+alias decir="$VV/pkgs/vibevoice/.venv/bin/python $VV/.claude/worktrees/vibevoice-simple-install-16fa50/scripts/decir.py"
+alias clonar="$VV/pkgs/vibevoice/.venv/bin/python $VV/.claude/worktrees/vibevoice-simple-install-16fa50/scripts/clonar_voz.py"
+
+# ── UltraMemory ──────────────────────────────────────────────────────────────
+# Token del gateway de kindling (LAN). Lo usan los perfiles .mcp.json por proyecto,
+# que llevan ${KLING_TOKEN} en vez del literal para no versionar un bearer.
+# El valor vive en el Llavero (ws/KLING_TOKEN_SHELL), no en este archivo: el
+# repo de dotfiles es público.
+export KLING_TOKEN="$(security find-generic-password -s ws/KLING_TOKEN_SHELL -w 2>/dev/null)"
+
+# Added by LM Studio CLI tool (lms)
+export PATH="$PATH:/Users/juanbedoya/.lmstudio/bin"
+
+# kling
+(( $+functions[compdef] )) || { autoload -U compinit && compinit }; [ -f "/Users/juanbedoya/.config/kling/completion.zsh" ] && . "/Users/juanbedoya/.config/kling/completion.zsh"
+
+# ─── ws: organizaciones y espacios de trabajo ────────────────────────────────
+# Shims de claude, opencode y gh: usan la cuenta y los MCPs de la organización
+# de la carpeta (o de la sesión de tmux). Fuera de una organización hacen exec
+# directo del binario de siempre. Va al final para quedar primero en el PATH.
+export PATH="$HOME/.local/share/ws/shims:$PATH"
+# Al entrar en un repo de una org conocida (github_orgs en ws.toml), se registra
+# solo como proyecto suyo: etiqueta de Finder, credenciales y marca de tmux.
+autoload -Uz add-zsh-hook
+_ws_descubrir() { [[ -e .git ]] && (ws descubrir "$PWD" >/dev/null 2>&1 &) }
+add-zsh-hook chpwd _ws_descubrir

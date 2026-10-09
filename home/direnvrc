@@ -13,3 +13,9 @@ do
   if [ -f "$_d" ]; then source "$_d"; break; fi
 done
 unset _d
+
+# ws: herramientas Nix del proyecto según ~/.config/ws/ws.toml. Los proyectos
+# registrados con herramientas tienen un .envrc de una línea: `use ws`.
+use_ws() {
+  eval "$(ws direnv)"
+}

@@ -2,15 +2,34 @@
 
 Configuración de terminal y editor, reproducible con nix-darwin + home-manager.
 
+## Instalar
+
+```sh
+git clone --recurse-submodules https://github.com/juan52878911/dotfiles-darwin ~/dotfiles
+sudo darwin-rebuild switch --flake ~/dotfiles#MacBook-Pro-de-Juan
+```
+
+`private/` es un submódulo privado ([dotfiles-privado](https://github.com/juan52878911/dotfiles-privado))
+con la configuración que no debe ser pública: las organizaciones de
+[tmux-ws](https://github.com/juan52878911/tmux-ws) (cuentas, correos, clientes). Desde
+mi cuenta se clona con todo; sin acceso, el submódulo no baja y el resto funciona
+igual (ws queda en modo normal). Si ya clonaste sin él: `git submodule update --init`.
+
+Después, una vez por máquina: los secretos de ws en el Llavero (`security
+add-generic-password -s ws/<NOMBRE> -w`) y los logins por organización desde el
+selector de tmux (`prefix + s`, `^g`).
+
 ## Qué hay
 
 | Ruta | Qué es |
 |---|---|
 | `config/nvim/` | Neovim sobre LazyVim, tema Catppuccin Mocha |
-| `config/tmux/` | tmux + scripts (`nowplaying.sh`, `float-setup.sh`) |
+| `config/tmux/` | tmux + scripts (`nowplaying.sh`, `float-setup.sh`, `float-open.sh`, `remote-session.sh`) |
 | `config/kitty/` | kitty, Catppuccin Mocha |
-| `home/` | zsh, powerlevel10k, markdownlint |
+| `home/` | zsh, powerlevel10k, markdownlint, git, direnv |
 | `darwin/` | flake de nix-darwin y módulo de home-manager |
+| `private/` | submódulo privado: configuración de ws |
+| tmux-ws | input del flake: organizaciones y espacios de trabajo (`programs.ws`) |
 
 ## Versiones de lenguajes: Nix por proyecto, gestores para lo global
 
