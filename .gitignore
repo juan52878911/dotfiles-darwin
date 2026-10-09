@@ -11,3 +11,4 @@ config/nvim/.netrwhist
 id_*
 !*.pub
 .env
+__pycache__/
