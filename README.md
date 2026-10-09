@@ -19,6 +19,21 @@ Después, una vez por máquina: los secretos de ws en el Llavero (`security
 add-generic-password -s ws/<NOMBRE> -w`) y los logins por organización desde el
 selector de tmux (`prefix + s`, `^g`).
 
+## ws: organizaciones (Trycore, Aura…) en el día a día
+
+Detalle completo en el [README de tmux-ws](https://github.com/juan52878911/tmux-ws#usage).
+
+- `prefix + s`: selector de sesiones por organización. `enter` abrir · `^n` nueva ·
+  `^x` cerrar (`s`/`n`) · `^r` renombrar · `^e` editar `ws.toml` · `^g` conectar GitHub ·
+  `/` buscar. Desde una flotante la cierra y la reabre al volver.
+- `prefix + S`: nueva sesión normal, o dentro de una organización (crea proyectos y organizaciones).
+- En la carpeta de un proyecto, `claude`, `gh`, `git` y `opencode` usan solos la cuenta de su
+  organización. Un repo clonado de `trycore-co` o `Aura-CRM` se registra solo al entrar.
+- La configuración está en `private/ws/ws.toml` (submódulo privado) y la interfaz, en español
+  (`@ws-lang es` en `config/tmux/tmux.conf`).
+- Diagnóstico: `ws doctor`. Saltarse ws una vez: `WS_OFF=1 claude`.
+- Actualizar el plugin: `nix flake update tmux-ws` y `darwin-rebuild switch`.
+
 ## Qué hay
 
 | Ruta | Qué es |
