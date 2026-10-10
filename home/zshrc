@@ -9,6 +9,8 @@ fi
 BREW_PREFIX="/opt/homebrew"
 
 # ─── PATH ─────────────────────────────────────────────────────────────────────
+# nix-darwin (darwin-rebuild y systemPackages). Al final: Homebrew sigue mandando.
+export PATH="$PATH:/run/current-system/sw/bin"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
 export PATH="$HOME/.opencode/bin:$PATH"

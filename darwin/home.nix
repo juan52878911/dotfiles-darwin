@@ -7,6 +7,19 @@
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
+
+  # Pasa los `export` de home/entorno-gui.sh (y private/entorno-gui.sh) a launchd.
+  # Se evalúan en un entorno vacío para que sólo suba lo que declaran los archivos.
+  entornoGui = pkgs.writeShellScript "entorno-gui" ''
+    archivos=("${repo}/home/entorno-gui.sh" "${repo}/private/entorno-gui.sh")
+    while IFS= read -r -d "" par; do
+      nombre=''${par%%=*}
+      case $nombre in HOME|USER|PWD|OLDPWD|SHLVL|_) continue ;; esac
+      /bin/launchctl setenv "$nombre" "''${par#*=}"
+    done < <(/usr/bin/env -i HOME="$HOME" USER="$USER" ${pkgs.bash}/bin/bash -c '
+      for f in "$@"; do [ -f "$f" ] && . "$f"; done
+      /usr/bin/env -0' _ "''${archivos[@]}")
+  '';
 in
 {
   home.stateVersion = "24.05";
@@ -19,6 +32,17 @@ in
     enable = true;
     configDir = "${repo}/private/ws";   # submódulo privado (dotfiles-privado)
     nixpkgs = "github:NixOS/nixpkgs/${nixpkgs.rev}";
+  };
+
+  # Entorno de las apps de escritorio: ver home/entorno-gui.sh.
+  # Corre al iniciar sesión y cada vez que se guarda uno de los dos archivos.
+  launchd.agents.entorno-gui = {
+    enable = true;
+    config = {
+      ProgramArguments = [ "${entornoGui}" ];
+      RunAtLoad = true;
+      WatchPaths = [ "${repo}/home/entorno-gui.sh" "${repo}/private/entorno-gui.sh" ];
+    };
   };
 
   home.file = {
