@@ -58,6 +58,15 @@ in
   };
 
   home.file = {
+    # Navegador de los logins de ws: Zen en el contenedor de cada organización.
+    ".local/bin/zen-ws" = {
+      executable = true;
+      text = ''
+        #!/bin/sh
+        exec ${pkgs.python3}/bin/python3 ${repo}/darwin/zen-ws.py "$@"
+      '';
+    };
+
     # zsh y prompt
     ".zshrc".source = enlace "home/zshrc";
     ".p10k.zsh".source = enlace "home/p10k.zsh";

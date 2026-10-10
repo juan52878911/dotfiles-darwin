@@ -5,6 +5,8 @@ etiqueta de color: se ve en Finder y se busca con Spotlight (tag:<Organización>
 En el grupo: `etiqueta` (nombre o false para no poner ninguna) y `color`; por
 defecto, su nombre y un color por orden. Respeta las etiquetas que pongas tú.
 
+Además las añade a las favoritas del Finder para que salgan en la barra lateral.
+
 Es cosa de este Mac, no de ws: lo lanza el agente ws-etiquetas (darwin/home.nix)
 al iniciar sesión y cada vez que cambia ws.toml.
 """
@@ -63,6 +65,19 @@ def etiquetar(ruta, etiqueta, nombres_ws):
         subprocess.run(["/usr/bin/xattr", "-wx", ATRIBUTO, datos, str(ruta)], capture_output=True)
 
 
+def favoritas(nombres):
+    """Añade las etiquetas de ws a las favoritas del Finder (las de la barra
+    lateral), detrás de las tuyas. Reinicia el Finder solo si cambia la lista."""
+    r = subprocess.run(["/usr/bin/defaults", "export", "com.apple.finder", "-"], capture_output=True)
+    actuales = plistlib.loads(r.stdout).get("FavoriteTagNames", []) if r.returncode == 0 else []
+    faltan = [n for n in nombres if n not in actuales]
+    if not faltan:
+        return
+    subprocess.run(["/usr/bin/defaults", "write", "com.apple.finder", "FavoriteTagNames",
+                    "-array", *actuales, *faltan])
+    subprocess.run(["/usr/bin/killall", "Finder"], capture_output=True)
+
+
 def main():
     config = Path(sys.argv[1] if len(sys.argv) > 1 else "~/.config/ws/ws.toml").expanduser()
     if not config.exists():
@@ -78,6 +93,7 @@ def main():
         grupo = clave.split("/")[0]
         if grupo in m and p.get("ruta"):
             etiquetar(expandir(p["ruta"]), m[grupo], nombres_ws)
+    favoritas([n for n, _ in m.values()])
 
 
 if __name__ == "__main__":
