@@ -154,7 +154,9 @@ alias dots="cd ~/dotfiles"
 # o Nix no lo ve y direnv no carga nada.
 alias nx-node='~/dotfiles/home/nx-init.sh node'
 alias nx-py='~/dotfiles/home/nx-init.sh python'
-alias nx-rust='~/dotfiles/home/nx-init.sh rust' 
+alias nx-rust='~/dotfiles/home/nx-init.sh rust'
+alias nx-java='~/dotfiles/home/nx-init.sh java'
+alias nx-go='~/dotfiles/home/nx-init.sh go'
 alias gs="git status -sb"
 alias gd="git diff"
 alias gl="git log --oneline --graph --decorate -20"

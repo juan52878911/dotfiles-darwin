@@ -23,9 +23,9 @@
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
-      host = "MacBook-Pro-de-Juan";
-    in {
-      darwinConfigurations.${host} = nix-darwin.lib.darwinSystem {
+      pkgs = nixpkgs.legacyPackages.${system};
+
+      sistema = nix-darwin.lib.darwinSystem {
         inherit system;
         specialArgs = { inherit usuario; };
         modules = [
@@ -42,8 +42,28 @@
           }
         ];
       };
+    in {
+      # Con el nombre real del Mac (LocalHostName), `darwin-rebuild switch --flake
+      # ~/dotfiles` funciona sin `#…`; el nombre antiguo se mantiene por costumbre.
+      darwinConfigurations = {
+        "MacBook-Pro-de-Juan-2" = sistema;
+        "MacBook-Pro-de-Juan" = sistema;
+      };
 
-      # Atajo: `nix run .#switch`
-      darwinPackages = self.darwinConfigurations.${host}.pkgs;
+      # `nix run ~/dotfiles#switch`: aplica la configuración desde la copia local
+      # (con su submódulo privado). Ruta absoluta de darwin-rebuild: el PATH de
+      # sudo no incluye /run/current-system/sw/bin.
+      apps.${system}.switch = {
+        type = "app";
+        program = toString (pkgs.writeShellScript "switch" ''
+          exec sudo /run/current-system/sw/bin/darwin-rebuild switch \
+            --flake "''${DOTFILES:-$HOME/dotfiles}" "$@"
+        '');
+      };
+
+      formatter.${system} = pkgs.nixfmt-rfc-style;
+
+      # `nix flake check`: que el sistema completo evalúa y compila.
+      checks.${system}.sistema = sistema.system;
     };
 }

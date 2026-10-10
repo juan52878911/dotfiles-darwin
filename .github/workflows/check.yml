@@ -1,0 +1,19 @@
+# Que el flake evalúe y que el sistema completo se pueda construir (sin
+# construirlo: --dry-run). El submódulo privado no baja en CI: los dotfiles
+# deben funcionar sin él.
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  flake:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: nix flake check (evaluación)
+        run: nix flake check --no-build
+      - name: el sistema se puede construir
+        run: nix build .#darwinConfigurations.MacBook-Pro-de-Juan-2.system --dry-run
+      - name: shellcheck de los scripts
+        run: nix run nixpkgs#shellcheck -- -S error bootstrap.sh home/nx-init.sh

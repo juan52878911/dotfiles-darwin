@@ -24,6 +24,14 @@ in
 {
   home.stateVersion = "24.05";
 
+  # TPM (plugins de tmux): en un Mac nuevo no existe y tmux.conf lo carga al
+  # final. Se clona una vez; luego `prefix + I` instala el resto de plugins.
+  home.activation.tpm = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+      ${pkgs.git}/bin/git clone --depth 1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" || true
+    fi
+  '';
+
   # ws: organizaciones y espacios de trabajo (github.com/juan52878911/tmux-ws).
   # La config (ws.toml, orgs/) vive en el submódulo privado private/; el tema, en config/tmux/tmux.conf.
   # Para desarrollar ws sin rebuild: checkout = "/Users/${usuario}/Documents/GitHub/tmux-ws";

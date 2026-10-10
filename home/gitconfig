@@ -10,6 +10,35 @@
 	path = git-xet
 	args = transfer
 	concurrent = true
+[init]
+	defaultBranch = main
+[fetch]
+	prune = true
+[push]
+	autoSetupRemote = true
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[diff]
+	algorithm = histogram
+	colorMoved = default
+[merge]
+	conflictstyle = zdiff3
+[rerere]
+	enabled = true
+[rebase]
+	autosquash = true
+	autostash = true
+# delta colorea diffs y logs; si no está instalado, git sigue con less.
+[core]
+	pager = "if command -v delta >/dev/null 2>&1; then delta; else less -FRX; fi"
+[interactive]
+	diffFilter = "if command -v delta >/dev/null 2>&1; then delta --color-only; else cat; fi"
+[delta]
+	navigate = true
+	line-numbers = true
+	dark = true
 # ws: correo, clave SSH y cuenta de GitHub por organización (includeIf por
 # carpeta). Lo genera `ws` desde ~/.config/ws/ws.toml; si no existe, git lo ignora.
 [include]

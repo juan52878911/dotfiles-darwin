@@ -1,6 +1,6 @@
 #!/bin/bash
 # Arranca un entorno reproducible de Nix en la carpeta actual.
-#   uso: nx-init node|python|rust
+#   uso: nx-init node|python|rust|java|go
 #
 # Hace tres cosas que hay que hacer juntas o no funciona:
 #   1. copia flake.nix y .envrc de la plantilla
@@ -14,16 +14,22 @@ tipo="$1"
 plantilla="$HOME/dotfiles/templates/$tipo"
 
 if [[ -z "$tipo" || ! -d "$plantilla" ]]; then
-  echo "uso: nx-init node|python|rust" >&2
+  echo "uso: nx-init node|python|rust|java|go" >&2
   exit 1
 fi
 
 cp -n "$plantilla/flake.nix" . 2>/dev/null
 cp -n "$plantilla/.envrc" .   2>/dev/null
 
+# flake.lock: fija las versiones de verdad. Sin él (o sin rastrear en git),
+# Nix vuelve a resolver nixpkgs-unstable cada vez y el entorno cambia solo.
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   git add -N flake.nix 2>/dev/null
-  echo "flake.nix marcado para git (necesario para que Nix lo vea)"
+fi
+[ -f flake.lock ] || nix flake lock 2>/dev/null
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  git add -N flake.lock 2>/dev/null
+  echo "flake.nix y flake.lock marcados para git (necesario para que Nix los vea)"
 fi
 
 # .direnv/ es cache local; .envrc suele ir ignorado por proyecto

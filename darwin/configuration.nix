@@ -34,6 +34,7 @@
     nix-direnv
     autossh
     mutagen
+    delta # pager de git (home/gitconfig): diffs coloreados con números de línea
   ];
 
   # nix-darwin NO gestiona los archivos de shell del sistema.

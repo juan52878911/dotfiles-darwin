@@ -4,10 +4,29 @@ Configuración de terminal y editor, reproducible con nix-darwin + home-manager.
 
 ## Instalar
 
+En un Mac vacío, un solo comando (Xcode CLT, Nix, Homebrew, el clon con su
+submódulo privado y nix-darwin; se puede repetir sin miedo):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/juan52878911/dotfiles-darwin/main/bootstrap.sh | bash
+```
+
+O a mano:
+
 ```sh
 git clone --recurse-submodules https://github.com/juan52878911/dotfiles-darwin ~/dotfiles
-sudo darwin-rebuild switch --flake ~/dotfiles#MacBook-Pro-de-Juan
+sudo darwin-rebuild switch --flake ~/dotfiles
 ```
+
+## Aplicar cambios
+
+```sh
+nix run ~/dotfiles#switch     # o: sudo darwin-rebuild switch --flake ~/dotfiles
+nix flake check ~/dotfiles    # que todo evalúa y se construye (también en CI)
+```
+
+La configuración se elige por el nombre del Mac (`scutil --get LocalHostName`);
+para otro Mac basta con añadir su nombre en `darwinConfigurations` de `flake.nix`.
 
 `private/` es un submódulo privado ([dotfiles-privado](https://github.com/juan52878911/dotfiles-privado))
 con la configuración que no debe ser pública: las organizaciones de
@@ -51,10 +70,11 @@ Detalle completo en el [README de tmux-ws](https://github.com/juan52878911/tmux-
 **Por proyecto** — copia una plantilla y direnv hace el resto:
 
 ```sh
-cd mi-proyecto && nx-py     # o nx-node / nx-rust
+cd mi-proyecto && nx-py     # o nx-node / nx-rust / nx-java / nx-go
 ```
 
-Crea `flake.nix` + `.envrc`. Al entrar en la carpeta se cargan esas versiones; al
+Crea `flake.nix`, `flake.lock` (versiones fijadas) y `.envrc`; las plantillas
+valen en Mac y en Linux. Al entrar en la carpeta se cargan esas versiones; al
 salir, se descargan. Reproducible en cualquier máquina con Nix.
 
 **Global** — siguen SDKMAN, nvm, pyenv, rustup y bun. No es pereza: nixpkgs **no
