@@ -7,6 +7,9 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 BREW_PREFIX="/opt/homebrew"
+# Sin duplicados en PATH: cada shell anidado (tmux, Claude, popups) ya no lo
+# alarga. Mantiene la primera aparición, así que el orden de prioridad se conserva.
+typeset -U path PATH
 
 # ─── PATH ─────────────────────────────────────────────────────────────────────
 # nix-darwin (darwin-rebuild y systemPackages). Al final: Homebrew sigue mandando.
@@ -18,7 +21,6 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 [[ -d "$BREW_PREFIX/opt/llvm@21/bin" ]] && export PATH="$BREW_PREFIX/opt/llvm@21/bin:$PATH"
-export PATH="/Volumes/ExternAscci/Github/bun/build/debug:$PATH"
 
 # ─── Node / nvm (carga diferida) ──────────────────────────────────────────────
 # Cargar nvm.sh al arrancar costaba ~200 ms (70% del inicio, medido con zprof).
@@ -26,7 +28,7 @@ export NVM_DIR="$HOME/.nvm"
 if [[ -r "$NVM_DIR/alias/default" ]]; then
   _nvm_def="$(<"$NVM_DIR/alias/default")"
   for _nvm_dir in "$NVM_DIR/versions/node/v${_nvm_def#v}"*(N/); do
-    export PATH="${_nvm_dir}bin:$PATH"; break
+    export PATH="${_nvm_dir}/bin:$PATH"; break
   done
   unset _nvm_def _nvm_dir
 fi
@@ -36,11 +38,18 @@ nvm() {
   nvm "$@"
 }
 
-# ─── Pyenv ────────────────────────────────────────────────────────────────────
+# ─── Pyenv (carga diferida) ───────────────────────────────────────────────────
+# `pyenv init` costaba ~140 ms en cada shell. Los shims ya resuelven la versión
+# de cada carpeta (.python-version); el init completo solo hace falta para
+# subcomandos como `pyenv shell` o activar virtualenvs, y se carga al usarlos.
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+export PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+pyenv() {
+  unset -f pyenv
+  eval "$(command pyenv init -)"
+  command pyenv commands 2>/dev/null | grep -qx virtualenv-init && eval "$(command pyenv virtualenv-init -)"
+  pyenv "$@"
+}
 
 # ─── Historial ────────────────────────────────────────────────────────────────
 HISTFILE="$HOME/.zsh_history"
@@ -152,23 +161,15 @@ alias gl="git log --oneline --graph --decorate -20"
 alias ports="lsof -nP -iTCP -sTCP:LISTEN"
 
 # ─── Claude Code ──────────────────────────────────────────────────────────────
-export CLAUDE_BUN_DIR="/Volumes/ExternAscci/Github/bun"
-export CLAUDE_BUN_SESSION="e1ab2f77-e6da-4e5d-bc8a-2b78cdf4dbe1"
-alias claude-bun='command claude --resume "$CLAUDE_BUN_SESSION" --name "bun-lockfile-schema"'
-
 # >>> claude-auto-retry >>>
-# Fusiona DOS cosas que antes se pisaban: el fijado de sesión de bun y el
-# envoltorio de claude-auto-retry. Había dos definiciones de claude() y la
-# segunda anulaba a la primera, dejando muerto el auto-resume.
+# Envoltorio de claude-auto-retry (reintenta tras límites de uso). El claude que
+# lanza es el del PATH, es decir, el shim de ws: cuenta y MCPs por organización.
 unalias claude 2>/dev/null || true
 claude() {
-  local launcher="$HOME/.nvm/versions/node/v20.19.5/lib/node_modules/claude-auto-retry/src/launcher.js"
-  local sess="$HOME/.claude/projects/-Volumes-ExternAscci-Github-bun/${CLAUDE_BUN_SESSION}.jsonl"
+  local -a _car; _car=("$NVM_DIR"/versions/node/*/lib/node_modules/claude-auto-retry/src/launcher.js(N))
+  local launcher="${_car[-1]}"
   local -a args; args=("$@")
-  if [[ $# -eq 0 && "$PWD" == "$CLAUDE_BUN_DIR" && -f "$sess" ]]; then
-    args=(--resume "$CLAUDE_BUN_SESSION" --name "bun-lockfile-schema")
-  fi
-  if [[ "$CLAUDE_AUTO_RETRY_ACTIVE" == "1" || ! -e "$launcher" ]]; then
+  if [[ "$CLAUDE_AUTO_RETRY_ACTIVE" == "1" || -z "$launcher" ]]; then
     command claude "${args[@]}"; return $?
   fi
   export CLAUDE_AUTO_RETRY_ACTIVE=1
@@ -183,17 +184,27 @@ claude() {
 # <<< claude-auto-retry <<<
 
 # ─── Prompt ───────────────────────────────────────────────────────────────────
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+[[ -r ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 [[ ! -f ~/.p10k.catppuccin.zsh ]] || source ~/.p10k.catppuccin.zsh
 
-# ─── SDKMAN ───────────────────────────────────────────────────────────────────
+# ─── SDKMAN (carga diferida) ──────────────────────────────────────────────────
+# Su init costaba ~40 ms y además apuntaba JAVA_HOME a candidates/java/current
+# (Java 8). Ahora: los `current` de cada herramienta al PATH (lo mismo que hacía
+# el init) y el comando `sdk` se carga al usarlo.
 export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+for _sdk_bin in "$SDKMAN_DIR"/candidates/*/current/bin(N/); do
+  export PATH="$PATH:$_sdk_bin"
+done
+unset _sdk_bin
+sdk() {
+  unset -f sdk
+  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+  sdk "$@"
+}
 
-# Java 21 para jdtls. DEBE ir DESPUÉS de SDKMAN: su init apunta JAVA_HOME a
-# candidates/java/current, que hoy es Java 8, y con eso el LSP no arranca.
-export JAVA_HOME="$HOME/.sdkman/candidates/java/21.0.2-graalce"
+# Java 21 por defecto (jdtls lo necesita); delante de los `current` de SDKMAN.
+export JAVA_HOME="$SDKMAN_DIR/candidates/java/21.0.2-graalce"
 export PATH="$JAVA_HOME/bin:$PATH"
 
 [[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
@@ -212,22 +223,28 @@ if [[ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
   ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#f9e2af'
   ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'
 fi
-VV=/Volumes/ExternAscci/Github/VibeVoiceNix
-alias decir="$VV/pkgs/vibevoice/.venv/bin/python $VV/.claude/worktrees/vibevoice-simple-install-16fa50/scripts/decir.py"
-alias clonar="$VV/pkgs/vibevoice/.venv/bin/python $VV/.claude/worktrees/vibevoice-simple-install-16fa50/scripts/clonar_voz.py"
+# ─── VibeVoice (en el disco externo) ──────────────────────────────────────────
+_vibevoice() {
+  local vv=/Volumes/ExternAscci/Github/VibeVoiceNix
+  local wt="$vv/.claude/worktrees/vibevoice-simple-install-16fa50/scripts"
+  [[ -d "$wt" ]] || wt="$vv/scripts"
+  if [[ ! -x "$vv/pkgs/vibevoice/.venv/bin/python" ]]; then
+    print -u2 "VibeVoice: el disco ExternAscci no está montado (o falta su .venv)"; return 1
+  fi
+  "$vv/pkgs/vibevoice/.venv/bin/python" "$wt/$1" "${@:2}"
+}
+decir()  { _vibevoice decir.py "$@"; }
+clonar() { _vibevoice clonar_voz.py "$@"; }
 
-# ── UltraMemory ──────────────────────────────────────────────────────────────
-# Token del gateway de kindling (LAN). Lo usan los perfiles .mcp.json por proyecto,
-# que llevan ${KLING_TOKEN} en vez del literal para no versionar un bearer.
-# El valor vive en el Llavero (ws/KLING_TOKEN_SHELL), no en este archivo: el
-# repo de dotfiles es público.
-export KLING_TOKEN="$(security find-generic-password -s ws/KLING_TOKEN_SHELL -w 2>/dev/null)"
+# KLING_TOKEN (gateway de kindling) ya no se exporta aquí: lo inyecta ws
+# ([env] de private/ws/ws.toml) solo al lanzar claude/opencode, también fuera
+# de las organizaciones. Así no queda en el entorno de todos los procesos.
 
-# Added by LM Studio CLI tool (lms)
-export PATH="$PATH:/Users/juanbedoya/.lmstudio/bin"
+# LM Studio CLI
+[[ -d "$HOME/.lmstudio/bin" ]] && export PATH="$PATH:$HOME/.lmstudio/bin"
 
 # kling
-(( $+functions[compdef] )) || { autoload -U compinit && compinit }; [ -f "/Users/juanbedoya/.config/kling/completion.zsh" ] && . "/Users/juanbedoya/.config/kling/completion.zsh"
+[[ -f "$HOME/.config/kling/completion.zsh" ]] && . "$HOME/.config/kling/completion.zsh"
 
 # ─── ws: organizaciones y espacios de trabajo ────────────────────────────────
 # Shims de claude, opencode y gh: usan la cuenta y los MCPs de la organización
