@@ -7,6 +7,10 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 BREW_PREFIX="/opt/homebrew"
+NIX_SW="/run/current-system/sw"
+# Carga el primero que exista: los plugins vienen de Nix (nix-darwin), con
+# Homebrew o el clon antiguo como respaldo.
+_zsh_cargar() { local f; for f in "$@"; do [[ -r "$f" ]] && { source "$f"; return 0; }; done; return 1; }
 # Sin duplicados en PATH: cada shell anidado (tmux, Claude, popups) ya no lo
 # alarga. Mantiene la primera aparición, así que el orden de prioridad se conserva.
 typeset -U path PATH
@@ -82,8 +86,8 @@ if command -v carapace >/dev/null 2>&1; then
 fi
 
 # ─── Sugerencias en gris ──────────────────────────────────────────────────────
-if [[ -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-  source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+if _zsh_cargar "$NIX_SW/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+               "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"; then
   ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#6c7086'
   ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 fi
@@ -186,7 +190,9 @@ claude() {
 # <<< claude-auto-retry <<<
 
 # ─── Prompt ───────────────────────────────────────────────────────────────────
-[[ -r ~/powerlevel10k/powerlevel10k.zsh-theme ]] && source ~/powerlevel10k/powerlevel10k.zsh-theme
+_zsh_cargar "$NIX_SW/share/zsh-powerlevel10k/powerlevel10k.zsh-theme" \
+            ~/powerlevel10k/powerlevel10k.zsh-theme \
+            "$BREW_PREFIX/share/powerlevel10k/powerlevel10k.zsh-theme"
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 [[ ! -f ~/.p10k.catppuccin.zsh ]] || source ~/.p10k.catppuccin.zsh
 
@@ -212,8 +218,8 @@ export PATH="$JAVA_HOME/bin:$PATH"
 [[ -s "$HOME/.bun/_bun" ]] && source "$HOME/.bun/_bun"
 
 # ─── Resaltado de sintaxis (SIEMPRE lo último) ────────────────────────────────
-if [[ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-  source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+if _zsh_cargar "$NIX_SW/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+               "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; then
   typeset -gA ZSH_HIGHLIGHT_STYLES
   ZSH_HIGHLIGHT_STYLES[command]='fg=#a6e3a1'
   ZSH_HIGHLIGHT_STYLES[builtin]='fg=#a6e3a1'
