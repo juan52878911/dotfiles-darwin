@@ -175,7 +175,6 @@
       "socat"
       "spicetify-cli"
       "sshpass"
-      "syncthing"
       "tcpdump"
       "terminal-notifier"
       "tmux"
@@ -207,7 +206,6 @@
       "rar"
       "slack"
       "spotify"
-      "steam"
       "utm"
       "vorssaint"
     ];
