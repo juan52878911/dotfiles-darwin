@@ -71,11 +71,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791670249,
-        "narHash": "sha256-kaxqAh2pf/J6+u2q0KNiFATAdUGq+2iHh+sN2IrUOpU=",
+        "lastModified": 1791673319,
+        "narHash": "sha256-iK/RwVBXoZlq5x5u/iMR25zhzkCY9gQ9xnTbVXuLDtI=",
         "owner": "juan52878911",
         "repo": "tmux-ws",
-        "rev": "7a4834096f09de46d1b1e7862a2b91d4c597d1bb",
+        "rev": "8678f593186568d72de51f8f641081d75d524264",
         "type": "github"
       },
       "original": {

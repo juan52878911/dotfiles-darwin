@@ -61,7 +61,7 @@
         '');
       };
 
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+      formatter.${system} = pkgs.nixfmt;
 
       # `nix flake check`: que el sistema completo evalúa y compila.
       checks.${system}.sistema = sistema.system;

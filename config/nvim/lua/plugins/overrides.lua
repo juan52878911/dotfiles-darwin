@@ -45,7 +45,7 @@ return {
           mason = false, -- Explicitly disable mason management for nil_ls
           settings = {
             ["nil"] = {
-              formatting = { command = { "nixfmt" } }, -- nixfmt-rfc-style, de nix-darwin
+              formatting = { command = { "nixfmt" } }, -- nixfmt, de nix-darwin
             },
           },
         },

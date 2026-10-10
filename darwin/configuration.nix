@@ -41,7 +41,7 @@
     zsh-syntax-highlighting
     # Nix en Neovim: servidor de lenguaje y formateador (lang.nix de LazyVim)
     nil
-    nixfmt-rfc-style
+    nixfmt
   ];
 
   # nix-darwin NO gestiona los archivos de shell del sistema.
