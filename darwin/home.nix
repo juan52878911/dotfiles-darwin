@@ -45,6 +45,18 @@ in
     };
   };
 
+  # Etiquetas de Finder de las carpetas de cada organización de ws (ver
+  # darwin/ws-etiquetas.py). Integración con macOS: vive aquí, no en el plugin.
+  launchd.agents.ws-etiquetas = {
+    enable = true;
+    config = {
+      ProgramArguments = [ "${pkgs.python3}/bin/python3" "${repo}/darwin/ws-etiquetas.py"
+                           "${repo}/private/ws/ws.toml" ];
+      RunAtLoad = true;
+      WatchPaths = [ "${repo}/private/ws" ];  # la carpeta: ws escribe con temporal + rename
+    };
+  };
+
   home.file = {
     # zsh y prompt
     ".zshrc".source = enlace "home/zshrc";
