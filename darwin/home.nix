@@ -52,6 +52,26 @@ in
     enable = true;
     tmux = true;
   };
+  # Adónde van los eventos y quién puede aprobar (~/.config/nod/config.json): el fichero local, el collector y
+  # el servidor de Orbit (el reloj), que además es el controlador de Nod Control. El token lo deja el
+  # instalador de Orbit en un fichero 0600; aquí solo va su ruta.
+  programs.nod.settings =
+    let
+      orbit = {
+        url = "http://127.0.0.1:7878";
+        token_file = "~/Library/Application Support/Orbit/nod.token";
+      };
+    in
+    {
+      sinks = [
+        { file = "~/.local/state/nod/events.jsonl"; }
+        { url = "http://127.0.0.1:8787"; }
+        orbit
+      ];
+      control = orbit;
+    };
+  # Nod también en OpenCode (plugin en ~/.config/opencode/plugins/nod.js).
+  programs.nod.opencode.enable = true;
 
   # Entorno de las apps de escritorio: ver home/entorno-gui.sh.
   # Corre al iniciar sesión y cada vez que se guarda uno de los dos archivos.
