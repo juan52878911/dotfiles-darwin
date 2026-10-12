@@ -3,7 +3,7 @@
 # Usa mkOutOfStoreSymlink en vez de copiar al store de Nix. Así los archivos
 # siguen siendo editables en el repo y los cambios se ven al instante, sin un
 # `darwin-rebuild` por cada retoque de la config de tmux o Neovim.
-{ config, pkgs, usuario, nixpkgs, tmux-ws, orbit-mod, ... }:
+{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, ... }:
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
@@ -35,17 +35,17 @@ in
   # ws: organizaciones y espacios de trabajo (github.com/juan52878911/tmux-ws).
   # La config (ws.toml, orgs/) vive en el submódulo privado private/; el tema, en config/tmux/tmux.conf.
   # Para desarrollar ws sin rebuild: checkout = "/Users/${usuario}/Documents/GitHub/tmux-ws";
-  imports = [ tmux-ws.homeManagerModules.default orbit-mod.homeManagerModules.default ];
+  imports = [ tmux-ws.homeManagerModules.default nod.homeManagerModules.default ];
   programs.ws = {
     enable = true;
     configDir = "${repo}/private/ws";   # submódulo privado (dotfiles-privado)
     nixpkgs = "github:NixOS/nixpkgs/${nixpkgs.rev}";
   };
 
-  # Orbit (github.com/juan52878911/orbit-mod): el mod de Claude Code en ~/.claude y en todos los perfiles
-  # de ws, también en los que se creen después. Reintentar a mano: orbit-sync. El servidor de Orbit se
-  # instala aparte (tools/install/install-mac.sh del repo Orbit).
-  programs.orbit.enable = true;
+  # Nod (github.com/juan52878911/nod): aprobar los permisos de Claude Code desde el reloj, en ~/.claude y
+  # en todos los perfiles de ws, también en los que se creen después. Reintentar a mano: nod-sync. El
+  # servidor de Orbit se instala aparte (tools/install/install-mac.sh del repo Orbit).
+  programs.nod.enable = true;
 
   # Entorno de las apps de escritorio: ver home/entorno-gui.sh.
   # Corre al iniciar sesión y cada vez que se guarda uno de los dos archivos.

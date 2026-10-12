@@ -56,23 +56,23 @@
         "type": "github"
       }
     },
-    "orbit-mod": {
+    "nod": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1791837050,
-        "narHash": "sha256-eTLzh14yB0EfHXTRubE4GuTR2uml/Od5wC3A0M20APQ=",
+        "lastModified": 1791838166,
+        "narHash": "sha256-bkzY7Fdd1xn6JaDa74ZJHz4rrhheI5K8czn0XFDf5NQ=",
         "owner": "juan52878911",
-        "repo": "orbit-mod",
-        "rev": "b0f1a02c6160ade26d63b55d8e3c35dcb98ea9fc",
+        "repo": "nod",
+        "rev": "9496f142aea62756956765e1ce75da06a310141b",
         "type": "github"
       },
       "original": {
         "owner": "juan52878911",
-        "repo": "orbit-mod",
+        "repo": "nod",
         "type": "github"
       }
     },
@@ -81,7 +81,7 @@
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
-        "orbit-mod": "orbit-mod",
+        "nod": "nod",
         "tmux-ws": "tmux-ws"
       }
     },
