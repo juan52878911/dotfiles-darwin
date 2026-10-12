@@ -64,6 +64,7 @@ Detalle completo en el [README de tmux-ws](https://github.com/juan52878911/tmux-
 | `darwin/` | flake de nix-darwin y módulo de home-manager |
 | `private/` | submódulo privado: configuración de ws |
 | tmux-ws | input del flake: organizaciones y espacios de trabajo (`programs.ws`) |
+| orbit-mod | input del flake: el mod de [Orbit](https://github.com/juan52878911/orbit-mod) en todos los perfiles de Claude Code (`programs.orbit`; `orbit-sync` reintenta) |
 
 ## Versiones de lenguajes: Nix por proyecto, gestores para lo global
 

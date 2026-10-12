@@ -17,9 +17,15 @@
       url = "github:juan52878911/tmux-ws";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Orbit: el mod de Claude Code, en todos los perfiles (github.com/juan52878911/orbit-mod).
+    # Actualizar: nix flake update orbit-mod
+    orbit-mod = {
+      url = "github:juan52878911/orbit-mod";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, orbit-mod, ... }:
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
@@ -37,7 +43,7 @@
             # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
             # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
             home-manager.backupFileExtension = "antes-de-nix";
-            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws; };
+            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws orbit-mod; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
         ];
