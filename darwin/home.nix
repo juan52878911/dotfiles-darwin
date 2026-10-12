@@ -42,10 +42,16 @@ in
     nixpkgs = "github:NixOS/nixpkgs/${nixpkgs.rev}";
   };
 
-  # Nod (github.com/juan52878911/nod): aprobar los permisos de Claude Code desde el reloj, en ~/.claude y
-  # en todos los perfiles de ws, también en los que se creen después. Reintentar a mano: nod-sync. El
-  # servidor de Orbit se instala aparte (tools/install/install-mac.sh del repo Orbit).
+  # Nod (github.com/juan52878911/nod): observa las sesiones de Claude Code (eventos Nod v1) en ~/.claude y en
+  # todos los perfiles de ws, también en los que se creen después. Reintentar a mano: nod-sync. Orbit (el
+  # reloj) se alimenta de Nod; su servidor se instala aparte (tools/install/install-mac.sh del repo Orbit).
   programs.nod.enable = true;
+  # Collector de Nod en este Mac (launchd, 127.0.0.1:8787): guarda los eventos y calcula las métricas
+  # (`nod-collector report`). `tmux` deja el binario para el panel de límites (config/tmux/scripts/nod-limits.sh).
+  programs.nod.collector = {
+    enable = true;
+    tmux = true;
+  };
 
   # Entorno de las apps de escritorio: ver home/entorno-gui.sh.
   # Corre al iniciar sesión y cada vez que se guarda uno de los dos archivos.
