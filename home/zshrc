@@ -259,6 +259,8 @@ clonar() { _vibevoice clonar_voz.py "$@"; }
 # de la carpeta (o de la sesión de tmux). Fuera de una organización hacen exec
 # directo del binario de siempre. Va al final para quedar primero en el PATH.
 export PATH="$HOME/.local/share/ws/shims:$PATH"
+# PATH propio de la organización (`path` en ws.toml): lo pone tmux en sus sesiones
+[[ -n $WS_PATH ]] && export PATH="$WS_PATH:$PATH"
 # Al entrar en un repo de una org conocida (github_orgs en ws.toml), se registra
 # solo como proyecto suyo: etiqueta de Finder, credenciales y marca de tmux.
 autoload -Uz add-zsh-hook
