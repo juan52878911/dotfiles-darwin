@@ -15,10 +15,20 @@ CLIENTE=${2:-$(tmux display-message -p "#{client_name}")}
 DIR=$(tmux display-message -p -t "=$SESS:" "#{pane_current_path}")
 HOST=$(tmux show -qv -t "=$SESS:" @ssh_host)
 
-if [[ -n "$HOST" ]] && ! tmux has-session -t "=f-$SESS" 2>/dev/null; then
-  tmux new-session -d -s "f-$SESS" -c "$DIR" "ssh $HOST"
+if ! tmux has-session -t "=f-$SESS" 2>/dev/null; then
+  if [[ -n "$HOST" ]]; then
+    tmux new-session -d -s "f-$SESS" -c "$DIR" "ssh $HOST"
+  else
+    tmux new-session -d -s "f-$SESS" -c "$DIR"
+  fi
 fi
 
+# El borde del popup hace de barra (ventanas y Nod, ver float-title.sh): necesita saber qué cliente lo
+# muestra, y se refresca solo mientras siga abierto.
+tmux set -t "=f-$SESS:" @float_client "$CLIENTE"
+TITULO=$(~/.config/tmux/scripts/float-title.sh "$SESS" --titulo)
+nohup ~/.config/tmux/scripts/float-title.sh "$SESS" --vigilar >/dev/null 2>&1 &
+
 tmux display-popup -c "$CLIENTE" -w 80% -h 85% -d "$DIR" -b rounded \
-  -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T " $SESS " \
+  -s "fg=#cdd6f4,bg=#181825" -S "fg=#585b70" -T "${TITULO:- $SESS }" \
   -E "tmux new-session -A -s f-$SESS"

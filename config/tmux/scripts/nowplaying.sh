@@ -22,22 +22,12 @@ MAX_LEN=28           # caracteres visibles antes de recortar
 SEP_COLOR="#585b70"  # gris del separador, el mismo de hora y fecha
 TEXT_COLOR="#6c7086"  # gris tenue: se lee al buscarla, no empuja la hora
 
-# Una sola llamada; python devuelve 4 líneas en orden fijo.
+# Una sola llamada; jq (no Python: ~5 ms frente a ~40) devuelve 4 líneas en orden fijo.
 # Nota: nada de `mapfile` — macOS trae bash 3.2 y no lo tiene.
 datos=$(
   nowplaying-cli get --json title artist playbackRate clientBundleIdentifier 2>/dev/null |
-  python3 -c '
-import json, sys
-try:
-    d = json.load(sys.stdin)
-except Exception:
-    print("\n\n\n"); sys.exit(0)
-def s(k):
-    v = d.get(k)
-    return "" if v in (None, "null") else " ".join(str(v).split())
-for k in ("title", "artist", "playbackRate", "clientBundleIdentifier"):
-    print(s(k))
-' 2>/dev/null
+  jq -r '[.title, .artist, .playbackRate, .clientBundleIdentifier][]
+         | if . == null or . == "null" then "" else (tostring | gsub("\\s+"; " ")) end' 2>/dev/null
 )
 
 {
