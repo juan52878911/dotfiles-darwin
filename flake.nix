@@ -25,7 +25,7 @@
     };
     # ia-config: mi configuración de IA (hooks, agentes y settings de Claude Code), repo aparte.
     # Local hasta publicarlo; luego "github:juan52878911/ia-config". Actualizar: nix flake update ia-config
-    ia-config.url = "path:/Users/juanbedoya/Documents/GitHub/ia-config";
+    ia-config.url = "git+file:///Users/juanbedoya/Documents/GitHub/ia-config";
   };
 
   outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, ia-config, ... }:

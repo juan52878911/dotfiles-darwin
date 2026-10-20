@@ -22,13 +22,17 @@
     },
     "ia-config": {
       "locked": {
+        "lastModified": 1792471634,
         "narHash": "sha256-FbFqUpKcUT/CdFAsBf4e4H+6PJxDT239s/PDQ2y3T8k=",
-        "path": "/Users/juanbedoya/Documents/GitHub/ia-config",
-        "type": "path"
+        "ref": "refs/heads/main",
+        "rev": "274dd2904b66f48f3c66c13a131475b27720a704",
+        "revCount": 1,
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/ia-config"
       },
       "original": {
-        "path": "/Users/juanbedoya/Documents/GitHub/ia-config",
-        "type": "path"
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/ia-config"
       }
     },
     "nix-darwin": {
