@@ -1,5 +1,20 @@
 {
   "nodes": {
+    "dotfiles-ia": {
+      "locked": {
+        "lastModified": 1792471824,
+        "narHash": "sha256-3GTnxJ3IegrYUoM9xD0r551GbdB2ZktitjEwAwQAYcQ=",
+        "ref": "refs/heads/main",
+        "rev": "e4503e1733feaa99b35ac2de8ccf52c2cb876655",
+        "revCount": 3,
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/dotfiles-ia"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/dotfiles-ia"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -18,21 +33,6 @@
         "owner": "nix-community",
         "repo": "home-manager",
         "type": "github"
-      }
-    },
-    "ia-config": {
-      "locked": {
-        "lastModified": 1792471634,
-        "narHash": "sha256-FbFqUpKcUT/CdFAsBf4e4H+6PJxDT239s/PDQ2y3T8k=",
-        "ref": "refs/heads/main",
-        "rev": "274dd2904b66f48f3c66c13a131475b27720a704",
-        "revCount": 1,
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/ia-config"
-      },
-      "original": {
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/ia-config"
       }
     },
     "nix-darwin": {
@@ -93,8 +93,8 @@
     },
     "root": {
       "inputs": {
+        "dotfiles-ia": "dotfiles-ia",
         "home-manager": "home-manager",
-        "ia-config": "ia-config",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nod": "nod",
