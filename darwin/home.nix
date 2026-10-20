@@ -3,7 +3,7 @@
 # Usa mkOutOfStoreSymlink en vez de copiar al store de Nix. Así los archivos
 # siguen siendo editables en el repo y los cambios se ven al instante, sin un
 # `darwin-rebuild` por cada retoque de la config de tmux o Neovim.
-{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, ... }:
+{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, ia-config, ... }:
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
@@ -35,7 +35,15 @@ in
   # ws: organizaciones y espacios de trabajo (github.com/juan52878911/tmux-ws).
   # La config (ws.toml, orgs/) vive en el submódulo privado private/; el tema, en config/tmux/tmux.conf.
   # Para desarrollar ws sin rebuild: checkout = "/Users/${usuario}/Documents/GitHub/tmux-ws";
-  imports = [ tmux-ws.homeManagerModules.default nod.homeManagerModules.default ];
+  imports = [ tmux-ws.homeManagerModules.default nod.homeManagerModules.default ia-config.homeManagerModules.default ];
+
+  # ia-config (~/Documents/GitHub/ia-config): hooks y agentes de Claude Code enlazados al clon (editables sin
+  # rebuild) y las reglas deny y los hooks fusionados en ~/.claude/settings.json en cada switch. Las reglas de
+  # empresa o de servidores concretos van en ~/.config/ia-config/damage-control.local.json, fuera de los repos.
+  programs.ia-config = {
+    enable = true;
+    checkout = "/Users/${usuario}/Documents/GitHub/ia-config";
+  };
   programs.ws = {
     enable = true;
     configDir = "${repo}/private/ws";   # submódulo privado (dotfiles-privado)

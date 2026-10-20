@@ -23,9 +23,12 @@
       url = "github:juan52878911/nod";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # ia-config: mi configuración de IA (hooks, agentes y settings de Claude Code), repo aparte.
+    # Local hasta publicarlo; luego "github:juan52878911/ia-config". Actualizar: nix flake update ia-config
+    ia-config.url = "path:/Users/juanbedoya/Documents/GitHub/ia-config";
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, ia-config, ... }:
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
@@ -43,7 +46,7 @@
             # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
             # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
             home-manager.backupFileExtension = "antes-de-nix";
-            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod; };
+            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod ia-config; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
         ];

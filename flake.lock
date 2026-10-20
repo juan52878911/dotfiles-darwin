@@ -20,6 +20,17 @@
         "type": "github"
       }
     },
+    "ia-config": {
+      "locked": {
+        "narHash": "sha256-FbFqUpKcUT/CdFAsBf4e4H+6PJxDT239s/PDQ2y3T8k=",
+        "path": "/Users/juanbedoya/Documents/GitHub/ia-config",
+        "type": "path"
+      },
+      "original": {
+        "path": "/Users/juanbedoya/Documents/GitHub/ia-config",
+        "type": "path"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -79,6 +90,7 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
+        "ia-config": "ia-config",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nod": "nod",
