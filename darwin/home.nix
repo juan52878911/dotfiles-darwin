@@ -43,6 +43,9 @@ in
   programs.dotfiles-ia = {
     enable = true;
     checkout = "/Users/${usuario}/Documents/GitHub/dotfiles-ia";
+    # Pi como segundo harness con MiniMax (suscripción). Misma clave que usa ws para claude_motor = "minimax".
+    pi.enable = true;
+    pi.llavero = "ws/MINIMAX_API_KEY";
   };
   programs.ws = {
     enable = true;
