@@ -2,17 +2,17 @@
   "nodes": {
     "dotfiles-ia": {
       "locked": {
-        "lastModified": 1792471824,
-        "narHash": "sha256-3GTnxJ3IegrYUoM9xD0r551GbdB2ZktitjEwAwQAYcQ=",
-        "ref": "refs/heads/main",
-        "rev": "e4503e1733feaa99b35ac2de8ccf52c2cb876655",
-        "revCount": 3,
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/dotfiles-ia"
+        "lastModified": 1792472125,
+        "narHash": "sha256-FuVJxEx4F09fNds43sAUGI7P5vsycCy7lUnclkRMNmA=",
+        "owner": "juan52878911",
+        "repo": "dotfiles-ia",
+        "rev": "2d5af12cac5ad669b7c1cc3fced73a625288602b",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/dotfiles-ia"
+        "owner": "juan52878911",
+        "repo": "dotfiles-ia",
+        "type": "github"
       }
     },
     "home-manager": {

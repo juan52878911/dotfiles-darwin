@@ -23,9 +23,10 @@
       url = "github:juan52878911/nod";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # dotfiles-ia: mi configuración de IA (hooks, agentes y settings de Claude Code), repo aparte.
-    # Local hasta publicarlo; luego "github:juan52878911/dotfiles-ia". Actualizar: nix flake update dotfiles-ia
-    dotfiles-ia.url = "git+file:///Users/juanbedoya/Documents/GitHub/dotfiles-ia";
+    # dotfiles-ia: mi configuración de IA (hooks, agentes y settings de Claude Code), github.com/juan52878911/dotfiles-ia.
+    # Agentes y hooks se enlazan al clon local (programs.dotfiles-ia.checkout); el input solo aporta el módulo.
+    # Actualizar tras cambiar el módulo: nix flake update dotfiles-ia
+    dotfiles-ia.url = "github:juan52878911/dotfiles-ia";
   };
 
   outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, dotfiles-ia, ... }:
