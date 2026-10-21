@@ -18,7 +18,6 @@ return {
         hide_by_name = {
           "font",         -- TTFs que nunca se abren desde el árbol
           "build",
-          "graphify-out", -- salida de build, sale con ? en cada archivo
           "node_modules",
           ".venv",
         },
