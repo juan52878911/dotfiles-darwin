@@ -46,6 +46,8 @@ in
     # Pi como segundo harness con MiniMax (suscripción). Misma clave que usa ws para claude_motor = "minimax".
     pi.enable = true;
     pi.llavero = "ws/MINIMAX_API_KEY";
+    # chrono-ia: índice de chrono con delega, Nod y las transcripciones de Claude; launchd lo sincroniza.
+    chronoIa.enable = true;
   };
   programs.ws = {
     enable = true;
