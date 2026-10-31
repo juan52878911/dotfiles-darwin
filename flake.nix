@@ -27,9 +27,15 @@
     # Agentes y hooks se enlazan al clon local (programs.dotfiles-ia.checkout); el input solo aporta el módulo.
     # Actualizar tras cambiar el módulo: nix flake update dotfiles-ia
     dotfiles-ia.url = "github:juan52878911/dotfiles-ia";
+    # TokenEconomizer: plugin de Claude Code que aprende de las sesiones de cada repo. Mi fork de
+    # microsoft/TokenEconomizer, fijado a la versión probada; actualizar: cambiar el sha y nix flake lock
+    tokeneconomizer = {
+      url = "github:juan52878911/TokenEconomizer/6141bb9251a7d5cccc1b97ae340c7b872108292c";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, dotfiles-ia, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, dotfiles-ia, tokeneconomizer, ... }:
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
@@ -47,7 +53,7 @@
             # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
             # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
             home-manager.backupFileExtension = "antes-de-nix";
-            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod dotfiles-ia; };
+            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod dotfiles-ia tokeneconomizer; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
         ];

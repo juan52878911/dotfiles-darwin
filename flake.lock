@@ -98,7 +98,8 @@
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nod": "nod",
-        "tmux-ws": "tmux-ws"
+        "tmux-ws": "tmux-ws",
+        "tokeneconomizer": "tokeneconomizer"
       }
     },
     "tmux-ws": {
@@ -118,6 +119,23 @@
       "original": {
         "owner": "juan52878911",
         "repo": "tmux-ws",
+        "type": "github"
+      }
+    },
+    "tokeneconomizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793249575,
+        "narHash": "sha256-sW+TEN1GqI6wfCCj7DYhzDwGOE20n25Totxn2g62aas=",
+        "owner": "juan52878911",
+        "repo": "TokenEconomizer",
+        "rev": "6141bb9251a7d5cccc1b97ae340c7b872108292c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "juan52878911",
+        "repo": "TokenEconomizer",
+        "rev": "6141bb9251a7d5cccc1b97ae340c7b872108292c",
         "type": "github"
       }
     }

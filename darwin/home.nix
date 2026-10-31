@@ -3,7 +3,7 @@
 # Usa mkOutOfStoreSymlink en vez de copiar al store de Nix. Así los archivos
 # siguen siendo editables en el repo y los cambios se ven al instante, sin un
 # `darwin-rebuild` por cada retoque de la config de tmux o Neovim.
-{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, ... }:
+{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, tokeneconomizer, ... }:
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
@@ -48,6 +48,13 @@ in
     pi.llavero = "ws/MINIMAX_API_KEY";
     # chrono-ia: índice de chrono con delega, Nod y las transcripciones de Claude; launchd lo sincroniza.
     chronoIa.enable = true;
+    # TokenEconomizer en las tres cuentas (personal, Trycore y Personal+ de ws) y en Pi.
+    tokeneconomizer = {
+      enable = true;
+      src = tokeneconomizer;
+      configDirs = [ "/Users/${usuario}/.local/state/ws/claude/trycore" "/Users/${usuario}/.local/state/ws/claude/personal-plus" ];
+      settings = { microskills = "envfacts+distiller"; toolprune = "propose"; loopguard = "nudge"; };
+    };
   };
   programs.ws = {
     enable = true;
