@@ -2,11 +2,11 @@
   "nodes": {
     "dotfiles-ia": {
       "locked": {
-        "lastModified": 1793070946,
-        "narHash": "sha256-nXGSSJENoTss+dHNTEncSAmEgixq80cpypuL4XmnXJ8=",
+        "lastModified": 1793475193,
+        "narHash": "sha256-dMiYAmWrIXCM6ocVWCAp7DfBEHU65EMgB/8FR1ur3Kg=",
         "owner": "juan52878911",
         "repo": "dotfiles-ia",
-        "rev": "0c579bc965e055f59e8dd7feccdc9231c42a4612",
+        "rev": "88ad91f4084ec3ee59ca70169ace76726d1d838a",
         "type": "github"
       },
       "original": {
