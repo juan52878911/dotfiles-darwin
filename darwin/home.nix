@@ -90,6 +90,20 @@ in
       ];
       control = orbit;
     };
+  # Eventos de nod de los nodos de delega (trycorepc, dev-trycore) al collector de este Mac, cada 5 min.
+  # Log: ~/.local/state/nod/nodos/traer.log
+  launchd.agents.nod-nodos = {
+    enable = true;
+    config = {
+      ProgramArguments = [ "${pkgs.bash}/bin/bash" "${repo}/private/nod/traer-nodos.sh" ];
+      EnvironmentVariables.PATH = "/etc/profiles/per-user/${usuario}/bin:/usr/bin:/bin";
+      StartInterval = 300;
+      RunAtLoad = true;
+      StandardOutPath = "/Users/${usuario}/.local/state/nod/nodos/traer.log";
+      StandardErrorPath = "/Users/${usuario}/.local/state/nod/nodos/traer.log";
+    };
+  };
+
   # Nod también en OpenCode (plugin en ~/.config/opencode/plugins/nod.js).
   programs.nod.opencode.enable = true;
 
