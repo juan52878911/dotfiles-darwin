@@ -36,13 +36,19 @@
     # diseno-studio: plugin de sistema de diseño para Claude Code; su flake compila el binario Rust `diseno`.
     # Desde el clon local mientras no esté en GitHub (git+file y no path:, su hash incluiría .git).
     # Actualizar tras un commit: nix flake update diseno-studio
+    # Modern Web Guidance (equipo de Chrome): solo sus guías, que dotfiles-ia empaqueta con una skill local.
+    # Mismo commit que fija el marketplace oficial de Claude Code; actualizar: cambiar el sha y nix flake lock
+    modern-web-guidance = {
+      url = "github:GoogleChrome/modern-web-guidance/b31dc0a43ff5d19bcf386a3476a216f3b39a6f55";
+      flake = false;
+    };
     diseno-studio = {
       url = "git+file:///Users/juanbedoya/Documents/GitHub/diseno-studio?ref=main";   # ?ref: solo lo commiteado, nunca el árbol de trabajo
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, dotfiles-ia, tokeneconomizer, diseno-studio, ... }:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, tmux-ws, nod, dotfiles-ia, tokeneconomizer, diseno-studio, modern-web-guidance, ... }:
     let
       system = "aarch64-darwin";
       usuario = "juanbedoya";
@@ -60,7 +66,7 @@
             # Si un archivo ya existe en $HOME, lo renombra en vez de fallar.
             # Sin esto, el primer switch aborta al encontrar .zshrc, .tmux.conf, etc.
             home-manager.backupFileExtension = "antes-de-nix";
-            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod dotfiles-ia tokeneconomizer diseno-studio; };
+            home-manager.extraSpecialArgs = { inherit usuario nixpkgs tmux-ws nod dotfiles-ia tokeneconomizer diseno-studio modern-web-guidance; };
             home-manager.users.${usuario} = import ./darwin/home.nix;
           }
         ];

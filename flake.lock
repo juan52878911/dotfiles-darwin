@@ -56,6 +56,23 @@
         "type": "github"
       }
     },
+    "modern-web-guidance": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791836182,
+        "narHash": "sha256-h96wDoXDO8c8CAiwGVEWPL3FcQAT1Axx6D0LeKp0isA=",
+        "owner": "GoogleChrome",
+        "repo": "modern-web-guidance",
+        "rev": "b31dc0a43ff5d19bcf386a3476a216f3b39a6f55",
+        "type": "github"
+      },
+      "original": {
+        "owner": "GoogleChrome",
+        "repo": "modern-web-guidance",
+        "rev": "b31dc0a43ff5d19bcf386a3476a216f3b39a6f55",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -117,6 +134,7 @@
         "diseno-studio": "diseno-studio",
         "dotfiles-ia": "dotfiles-ia",
         "home-manager": "home-manager",
+        "modern-web-guidance": "modern-web-guidance",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nod": "nod",
