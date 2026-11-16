@@ -3,7 +3,7 @@
 # Usa mkOutOfStoreSymlink en vez de copiar al store de Nix. Así los archivos
 # siguen siendo editables en el repo y los cambios se ven al instante, sin un
 # `darwin-rebuild` por cada retoque de la config de tmux o Neovim.
-{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, tokeneconomizer, ... }:
+{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, tokeneconomizer, diseno-studio, ... }:
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
@@ -54,6 +54,11 @@ in
       src = tokeneconomizer;
       configDirs = [ "/Users/${usuario}/.local/state/ws/claude/trycore" "/Users/${usuario}/.local/state/ws/claude/personal-plus" ];
       settings = { microskills = "envfacts+distiller"; toolprune = "propose"; loopguard = "nudge"; };
+    };
+    # diseno-studio: DESIGN.md, auditoría y bucle de críticos con el binario `diseno` compilado aquí por Nix.
+    diseno = {
+      enable = true;
+      package = diseno-studio.packages.${pkgs.stdenv.hostPlatform.system}.plugin;
     };
   };
   programs.ws = {

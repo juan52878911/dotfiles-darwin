@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "diseno-studio": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794805383,
+        "narHash": "sha256-6Tqa7kL0cGzxjHvb5OrxGg41foVnuk41Qkmxlw1UTQY=",
+        "ref": "main",
+        "rev": "9747d2c028f55e1aba12dd62bb6ad107524b9eaa",
+        "revCount": 2,
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/diseno-studio"
+      },
+      "original": {
+        "ref": "main",
+        "type": "git",
+        "url": "file:///Users/juanbedoya/Documents/GitHub/diseno-studio"
+      }
+    },
     "dotfiles-ia": {
       "locked": {
         "lastModified": 1794533344,
@@ -93,6 +114,7 @@
     },
     "root": {
       "inputs": {
+        "diseno-studio": "diseno-studio",
         "dotfiles-ia": "dotfiles-ia",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
