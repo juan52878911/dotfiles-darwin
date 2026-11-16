@@ -3,7 +3,7 @@
 # Usa mkOutOfStoreSymlink en vez de copiar al store de Nix. Así los archivos
 # siguen siendo editables en el repo y los cambios se ven al instante, sin un
 # `darwin-rebuild` por cada retoque de la config de tmux o Neovim.
-{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, tokeneconomizer, diseno-studio, modern-web-guidance, ... }:
+{ config, pkgs, usuario, nixpkgs, tmux-ws, nod, dotfiles-ia, tokeneconomizer, plumb, modern-web-guidance, ... }:
 let
   repo = "/Users/${usuario}/dotfiles";
   enlace = ruta: config.lib.file.mkOutOfStoreSymlink "${repo}/${ruta}";
@@ -55,11 +55,10 @@ in
       configDirs = [ "/Users/${usuario}/.local/state/ws/claude/trycore" "/Users/${usuario}/.local/state/ws/claude/personal-plus" ];
       settings = { microskills = "envfacts+distiller"; toolprune = "propose"; loopguard = "nudge"; };
     };
-    # diseno-studio: DESIGN.md, auditoría y bucle de críticos con el binario `diseno` compilado aquí por Nix.
+    # Sección de diseño: plumb (DESIGN.md, medición y auditoría con su binario Rust compilado aquí por Nix)
+    # y las guías de Modern Web Guidance (Chrome) con búsqueda local: qué API web usar.
     diseno = {
-      enable = true;
-      package = diseno-studio.packages.${pkgs.stdenv.hostPlatform.system}.plugin;
-      # Guías de Modern Web Guidance (Chrome) con búsqueda local: qué API web usar; el DESIGN.md decide los valores.
+      plumb = { enable = true; package = plumb.packages.${pkgs.stdenv.hostPlatform.system}.plugin; };
       webModerna = { enable = true; src = modern-web-guidance; };
     };
   };

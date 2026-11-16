@@ -1,26 +1,5 @@
 {
   "nodes": {
-    "diseno-studio": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1794805383,
-        "narHash": "sha256-6Tqa7kL0cGzxjHvb5OrxGg41foVnuk41Qkmxlw1UTQY=",
-        "ref": "main",
-        "rev": "9747d2c028f55e1aba12dd62bb6ad107524b9eaa",
-        "revCount": 2,
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/diseno-studio"
-      },
-      "original": {
-        "ref": "main",
-        "type": "git",
-        "url": "file:///Users/juanbedoya/Documents/GitHub/diseno-studio"
-      }
-    },
     "dotfiles-ia": {
       "locked": {
         "lastModified": 1794855112,
@@ -129,15 +108,35 @@
         "type": "github"
       }
     },
+    "plumb": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794859114,
+        "narHash": "sha256-LWo94AUBtAeWHFRAZGqeVSyzD3k/Gtf/qeNyHeH26J0=",
+        "owner": "juan52878911",
+        "repo": "plumb",
+        "rev": "ed978f9b2b94eeb9bcd19009ef82d00f249ccf7c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "juan52878911",
+        "repo": "plumb",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "diseno-studio": "diseno-studio",
         "dotfiles-ia": "dotfiles-ia",
         "home-manager": "home-manager",
         "modern-web-guidance": "modern-web-guidance",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
         "nod": "nod",
+        "plumb": "plumb",
         "tmux-ws": "tmux-ws",
         "tokeneconomizer": "tokeneconomizer"
       }
